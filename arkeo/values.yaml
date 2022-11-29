@@ -56,11 +56,11 @@ service:
       p2p: 26656
       rpc: 26657
     stagenet:
-      p2p: 27146
-      rpc: 27147
+      p2p: 26656
+      rpc: 26657
     mainnet:
-      p2p: 27146
-      rpc: 27147
+      p2p: 26656
+      rpc: 26657
 
 persistence:
   enabled: true

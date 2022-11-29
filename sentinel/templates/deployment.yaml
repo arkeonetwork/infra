@@ -86,10 +86,34 @@ spec:
               value: "true"
             - name: NET
               value: {{ include "sentinel.net" . }}
+            - name: MONIKER
+              value: {{ .Values.moniker }}
+            - name: WEBSITE
+              value: {{ .Values.website }}
+            - name: DESCRIPTION
+              value: {{ .Values.description }}
+            - name: LOCATION
+              value: {{ .Values.location }}
+            - name: PROXY_HOST
+              value: {{ .Values.proxyHost }}
+            - name: CLAIM_STORE_LOCATION
+              value: {{ .Values.claimStoreLocation }}
             - name: SOURCE_CHAIN
               value: "http://{{ .Values.arkeoApi }}"
             - name: EVENT_STREAM_HOST
               value: {{ include "sentinel.arkeoDaemon" . }}
+            - name: FREE_RATE_LIMIT
+              value: "{{ .Values.freeRate.limit }}"
+            - name: FREE_RATE_LIMIT_DURATION
+              value: {{ .Values.freeRate.duration }}
+            - name: SUB_RATE_LIMIT
+              value: "{{ .Values.subRate.limit }}"
+            - name: SUB_RATE_LIMIT_DURATION
+              value: {{ .Values.subRate.duration }}
+            - name: AS_GO_RATE_LIMIT
+              value: "{{ .Values.asGoRate.limit }}"
+            - name: AS_GO_RATE_LIMIT_DURATION
+              value: {{ .Values.asGoRate.duration }}
             - name: PEER
               value: {{ default .Values.peer .Values.global.peer }}
             - name: SIGNER_NAME

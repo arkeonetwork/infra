@@ -3,6 +3,21 @@
 # Declare variables to be passed into your templates.
 
 net: testnet
+moniker: n/a
+website: n/a
+description: n/a
+location: n/a
+proxyHost: https://swapi.dev
+freeRate:
+  limit: 10
+  duration: 1m
+subRate:
+  limit: 10
+  duration: 1m
+asGoRate:
+  limit: 10
+  duration: 1m
+claimStoreLocation: "${HOME}/.arkeo/claims"
 
 signer:
   name: arkeo
@@ -26,9 +41,9 @@ chainID:
   stagenet: arkeo-stagenet-v1
 
 arkeoDaemon:
-  mainnet: arkeo:27147
+  mainnet: arkeo:26657
   testnet: arkeo:26657
-  stagenet: arkeo:27147
+  stagenet: arkeo:26657
 
 replicaCount: 1
 

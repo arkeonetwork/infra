@@ -111,66 +111,6 @@ Display stream of logs of a Arkeo Node deployment selected:
 make logs
 ```
 
-# set-node-keys
-
-Send a `set-node-keys` to your node, which will set your node keys automatically for you
-by retrieving them directly from the `arkeo` deployment.
-
-```bash
-make set-node-keys
-```
-
-# set-ip-address
-
-Send a `set-ip-address` to your node, which will set your node ip address automatically for you
-by retrieving the load balancer deployed directly.
-
-```bash
-make set-ip-address
-```
-
-# set-version
-
-Send a `set-version` to your node, which will set your node version according to the
-docker image you last deployed.
-
-```bash
-make set-version
-```
-
-# pause
-
-Send a `pause-chain` to your node, which will globally halt Arkeo chain for 300 blocks. This is only to be used by node operators in the event of an emergency, such as a suspected attack on the network. This can only be done once by each node operator per churn. Nodes found abusing this command may be banned by other node operators. Use with extreme caution!
-
-```bash
-make pause
-```
-
-# resume
-
-Send a `resume-chain` to your node, which will unpause the network if it is currently paused.
-
-```bash
-make resume
-```
-
-# relay
-
-Send a message on behalf of your node that will be relayed to a public channel on the dev Discord. This may be used for a number of purposes, including:
-
-- publicly state approval or disapproval for a proposal
-- propose to ban bad nodes
-- alert the community to something suspicious
-- share logs via pastebin
-- explain the reason for `pause` / `resume` the network
-- etc.
-
-Please do not spam the Discord channels. Attempts to collude or otherwise abuse this privelege may lead to revocation of this feature.
-
-```bash
-make relay
-```
-
 ## Destroy Arkeo Node
 
 To fully destroy the running node and all services, run that command:

@@ -1,0 +1,39 @@
+dependencies:
+- name: gateway
+  repository: file://../gateway
+  version: 0.1.0
+- name: arkeo
+  repository: file://../arkeo
+  version: 0.1.0
+- name: sentinel
+  repository: file://../sentinel
+  version: 0.1.0
+- name: midgard
+  repository: file://../midgard
+  version: 0.1.0
+- name: binance-daemon
+  repository: file://../binance-daemon
+  version: 0.1.0
+- name: bitcoin-daemon
+  repository: file://../bitcoin-daemon
+  version: 0.1.0
+- name: litecoin-daemon
+  repository: file://../litecoin-daemon
+  version: 0.1.0
+- name: bitcoin-cash-daemon
+  repository: file://../bitcoin-cash-daemon
+  version: 0.1.0
+- name: ethereum-daemon
+  repository: file://../ethereum-daemon
+  version: 0.1.0
+- name: dogecoin-daemon
+  repository: file://../dogecoin-daemon
+  version: 0.1.0
+- name: gaia-daemon
+  repository: file://../gaia-daemon
+  version: 0.1.0
+- name: avalanche-daemon
+  repository: file://../avalanche-daemon
+  version: 0.1.0
+digest: sha256:de19c32bbe159dc2e71970c88f81cd65939e74ccaef93af7a44641cbeb51e6c8
+generated: "2022-11-29T11:21:16.805856245Z"

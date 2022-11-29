@@ -1,0 +1,68 @@
+apiVersion: v2
+name: thornode-stack
+description: Deploys a THORNode stack with options to enable or disable some services
+type: application
+version: 0.2.0
+
+appVersion: 0.2.0
+
+dependencies:
+  - name: gateway
+    repository: file://../gateway
+    version: 0.1.0
+    condition: gateway.enabled
+
+  - name: thornode
+    repository: file://../thornode
+    version: 0.1.0
+    condition: thornode.enabled
+
+  - name: bifrost
+    repository: file://../bifrost
+    version: 0.1.0
+    condition: bifrost.enabled
+
+  - name: midgard
+    repository: file://../midgard
+    version: 0.1.0
+    condition: midgard.enabled
+
+  - name: binance-daemon
+    repository: file://../binance-daemon
+    version: 0.1.0
+    condition: binance-daemon.enabled
+
+  - name: bitcoin-daemon
+    repository: file://../bitcoin-daemon
+    version: 0.1.0
+    condition: bitcoin-daemon.enabled
+
+  - name: litecoin-daemon
+    repository: file://../litecoin-daemon
+    version: 0.1.0
+    condition: litecoin-daemon.enabled
+
+  - name: bitcoin-cash-daemon
+    repository: file://../bitcoin-cash-daemon
+    version: 0.1.0
+    condition: bitcoin-cash-daemon.enabled
+
+  - name: ethereum-daemon
+    repository: file://../ethereum-daemon
+    version: 0.1.0
+    condition: ethereum-daemon.enabled
+
+  - name: dogecoin-daemon
+    repository: file://../dogecoin-daemon
+    version: 0.1.0
+    condition: dogecoin-daemon.enabled
+
+  - name: gaia-daemon
+    repository: file://../gaia-daemon
+    version: 0.1.0
+    condition: gaia-daemon.enabled
+
+  - name: avalanche-daemon
+    repository: file://../avalanche-daemon
+    version: 0.1.0
+    condition: avalanche-daemon.enabled

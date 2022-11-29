@@ -1,0 +1,20 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: {{ .Release.Name }}-{{ include "midgard.name" . }}
+  namespace: prometheus-system
+  labels:
+    {{- include "midgard.labels" . | nindent 4 }}
+    release: prometheus
+spec:
+  selector:
+    matchLabels:
+      {{- include "midgard.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: midgard
+  namespaceSelector:
+    matchNames:
+    - {{ .Release.Namespace }}
+  endpoints:
+  - port: http
+    path: /v2/debug/metrics
+    interval: 15s

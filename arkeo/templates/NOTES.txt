@@ -1,0 +1,12 @@
+- Get the Arkeo Node IP by running these commands:
+
+  export NODE_IP=$(kubectl get configmap {{ include "arkeo.fullname" . }}-external-ip -o jsonpath={.data.externalIP})
+  echo $NODE_IP
+
+- Visit RPC endpoint of the Arkeo Node:
+
+  Mainnet:
+  curl http://$NODE_IP:27147
+
+  Testnet / Mocknet:
+  curl http://$NODE_IP:26567

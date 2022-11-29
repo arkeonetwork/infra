@@ -1,0 +1,23 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "binance-daemon.fullname" . }}
+  labels:
+    {{- include "binance-daemon.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.service.type }}
+  ports:
+    - name: rpc
+      port: {{ include "binance-daemon.rpc" . }}
+      targetPort: rpc
+      protocol: TCP
+    - name: p2p
+      port: {{ include "binance-daemon.p2p" . }}
+      targetPort: p2p
+      protocol: TCP
+    - name: prometheus
+      port: 28660
+      targetPort: prometheus
+      protocol: TCP
+  selector:
+    {{- include "binance-daemon.selectorLabels" . | nindent 4 }}

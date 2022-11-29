@@ -1,0 +1,271 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ include "midgard.fullname" . }}
+  labels:
+    {{- include "midgard.labels" . | nindent 4 }}
+    app.kubernetes.io/component: midgard
+spec:
+  serviceName: {{ include "midgard.fullname" . }}-headless
+  podManagementPolicy: "Parallel"
+  replicas: {{ .Values.replicaCount }}
+  updateStrategy:
+    type: RollingUpdate
+  selector:
+    matchLabels:
+      {{- include "midgard.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: midgard
+  template:
+    metadata:
+      labels:
+        {{- include "midgard.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: midgard
+    spec:
+    {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
+      serviceAccountName: {{ include "midgard.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      initContainers:
+        - name: init-database
+          image: busybox:{{ .Values.global.images.busybox.tag }}@sha256:{{ .Values.global.images.busybox.hash }}
+          command: ['sh', '-c', "export INDEX=${HOSTNAME##*-}; until nc -zv {{ include "midgard.fullname" . }}-timescaledb-$INDEX.{{ include "midgard.fullname" . }}-timescaledb:{{ .Values.postgres.port }}; do echo waiting for timescale database; sleep 2; done"]
+        - name: init-thor
+          image: busybox:{{ .Values.global.images.busybox.tag }}@sha256:{{ .Values.global.images.busybox.hash }}
+          command: ['sh', '-c', "until nc -zv {{ .Values.thorApi }}; do echo waiting for thornode; sleep 2; done"]
+      containers:
+        - name: {{ .Chart.Name }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          image: {{ .Values.image.name }}:{{ include "daemon.tag" . }}@sha256:{{ .Values.image.hash }}
+          imagePullPolicy: IfNotPresent
+          command: ['/entrypoint.sh']
+          {{- if .Values.blockstore.enabled }}
+          env:
+            - name: MIDGARD_BLOCKSTORE_LOCAL
+              value: /blockstore
+            - name: MIDGARD_BLOCKSTORE_REMOTE
+              value: {{ .Values.blockstore.remote }}
+          {{- end }}
+          volumeMounts:
+          - name: config
+            mountPath: /config.json.tpl
+            subPath: config.json
+          - name: config
+            mountPath: /entrypoint.sh
+            subPath: entrypoint.sh
+          - name: config
+            mountPath: /resources/hashes/thorchain
+            subPath: thorchain-blockstore-hashes
+          {{- if .Values.blockstore.enabled }}
+          - name: blockstore
+            mountPath: /blockstore
+          {{- end }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.service.port }}
+              protocol: TCP
+          startupProbe:
+            failureThreshold: 60
+            timeoutSeconds: 5
+            periodSeconds: 10
+            tcpSocket:
+              port: http
+          livenessProbe:
+            initialDelaySeconds: 300
+            timeoutSeconds: 20
+            periodSeconds: 30
+            tcpSocket:
+              port: http
+          readinessProbe:
+            timeoutSeconds: 20
+            periodSeconds: 30
+            failureThreshold: 5
+            exec:
+              command:
+              - /bin/sh
+              - -c
+              - "wget -q -O - -T 20 localhost:8080/v2/health | grep '\"inSync\": true'"
+          resources:
+            {{- toYaml .Values.resources.midgard | nindent 12 }}
+      volumes:
+        - name: config
+          configMap:
+            name: {{ include "midgard.fullname" . }}-config
+            defaultMode: 0777
+  {{- if .Values.blockstore.enabled }}
+  {{- if .Values.persistence.enabled }}
+  volumeClaimTemplates:
+  - metadata:
+      name: blockstore
+      annotations:
+      {{- range $key, $value := .Values.persistence.annotations }}
+        {{ $key }}: {{ $value }}
+      {{- end }}
+    spec:
+      accessModes:
+      - {{ .Values.persistence.accessMode | quote }}
+      resources:
+        requests:
+          storage: {{ .Values.blockstore.size | quote }}
+      {{- if .Values.persistence.storageClass }}
+      {{- if (eq "-" .Values.persistence.storageClass) }}
+      storageClassName: ""
+      {{- else }}
+      storageClassName: "{{ .Values.persistence.storageClass }}"
+      {{- end }}
+      {{- end }}
+  {{- else }}
+      - name: blockstore
+        emptyDir: {}
+  {{- end }}
+  {{- end }}
+
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+    {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
+    {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
+
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ include "midgard.fullname" . }}-timescaledb
+  labels:
+    {{- include "midgard.labels" . | nindent 4 }}
+    app.kubernetes.io/component: timescaledb
+spec:
+  serviceName: {{ include "midgard.fullname" . }}-timescaledb
+  podManagementPolicy: "Parallel"
+  replicas: {{ .Values.replicaCount }}
+  updateStrategy:
+    type: RollingUpdate
+  selector:
+    matchLabels:
+      {{- include "midgard.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: timescaledb
+  template:
+    metadata:
+      labels:
+        {{- include "midgard.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: timescaledb
+    spec:
+    {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
+      serviceAccountName: {{ include "midgard.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      containers:
+        - name: {{ .Chart.Name }}-timescaledb
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          image: {{ .Values.timescaleDbImage.repository }}:{{ .Values.timescaleDbImage.tag }}@sha256:{{ .Values.timescaleDbImage.hash }}
+          imagePullPolicy: IfNotPresent
+          volumeMounts:
+            - mountPath: /var/lib/postgresql/data
+              name: data
+            - mountPath: /dev/shm
+              name: dshm
+          args:
+          - -c
+          - max_connections=100
+          - -c
+          - shared_buffers=128MB
+          - -c
+          - wal_buffers=16MB
+          - -c
+          - work_mem=8MB
+          - -c
+          - plan_cache_mode=force_custom_plan
+          env:
+            - name: PGDATA
+              value: /var/lib/postgresql/data/pgdata
+            - name: POSTGRES_USER
+              value: {{ .Values.postgres.username }}
+            - name: POSTGRES_PASSWORD
+              value: {{ .Values.postgres.password }}
+          ports:
+            - name: postgres
+              containerPort: 5432
+              protocol: TCP
+          livenessProbe:
+            exec:
+              command:
+              - pg_isready
+              - -U
+              - {{ .Values.postgres.username }}
+            initialDelaySeconds: 30
+            timeoutSeconds: 5
+            periodSeconds: 30
+          readinessProbe:
+            exec:
+              command:
+              - pg_isready
+              - -U
+              - {{ .Values.postgres.username }}
+            initialDelaySeconds: 5
+            timeoutSeconds: 5
+            periodSeconds: 30
+          resources:
+            {{- toYaml .Values.resources.timescaledb | nindent 12 }}
+      volumes:
+      - name: dshm
+        emptyDir:
+          medium: Memory
+          sizeLimit: 1Gi
+  {{- if .Values.persistence.enabled }}
+  volumeClaimTemplates:
+  - metadata:
+      name: data
+      annotations:
+      {{- range $key, $value := .Values.persistence.annotations }}
+        {{ $key }}: {{ $value }}
+      {{- end }}
+    spec:
+      accessModes:
+      - {{ .Values.persistence.accessMode | quote }}
+      resources:
+        requests:
+          {{- if eq (include "midgard.net" .) "mainnet" }}
+          storage: {{ .Values.persistence.size.mainnet | quote }}
+          {{- else if eq (include "midgard.net" .) "stagenet" }}
+          storage: {{ .Values.persistence.size.stagenet | quote }}
+          {{- else }}
+          storage: {{ .Values.persistence.size.testnet | quote }}
+          {{- end }}
+      {{- if .Values.persistence.storageClass }}
+      {{- if (eq "-" .Values.persistence.storageClass) }}
+      storageClassName: ""
+      {{- else }}
+      storageClassName: "{{ .Values.persistence.storageClass }}"
+      {{- end }}
+      {{- end }}
+  {{- else }}
+      - name: data
+        emptyDir: {}
+  {{- end }}
+
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+    {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
+    {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}

@@ -1,0 +1,25 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "litecoin-daemon.fullname" . }}
+  labels:
+    {{- include "litecoin-daemon.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.service.type }}
+  ports:
+    - name: p2p
+      port: {{ include "litecoin-daemon.p2p" . }}
+      targetPort: p2p
+      protocol: TCP
+      {{ if eq .Values.service.type "NodePort" }}
+      nodePort: {{.Values.service.port.p2p}}
+      {{ end }}
+    - name: rpc
+      port: {{ include "litecoin-daemon.rpc" . }}
+      targetPort: rpc
+      protocol: TCP
+      {{ if eq .Values.service.type "NodePort" }}
+      nodePort: {{.Values.service.port.rpc}}
+      {{ end }}
+  selector:
+    {{- include "litecoin-daemon.selectorLabels" . | nindent 4 }}

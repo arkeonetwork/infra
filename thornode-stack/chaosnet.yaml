@@ -1,0 +1,39 @@
+global:
+  tag: chaosnet-multichain-1.100.0
+  hash: 27ef04b6a8de0cecddbb47ab0b84da9389e0fa2fc1fc486e1cc7073089104e9a
+
+thornode:
+  haltHeight:
+  statesync:
+    auto: false
+    snapshotInterval: 0
+
+midgard:
+  blockstore:
+    enabled: true
+    remote: https://storage.googleapis.com/public-snapshots-ninerealms/midgard-blockstore/mainnet/v2/
+    size: 20Gi
+
+binance-daemon:
+  enabled: true
+
+bitcoin-daemon:
+  enabled: true
+
+litecoin-daemon:
+  enabled: true
+
+bitcoin-cash-daemon:
+  enabled: true
+
+ethereum-daemon:
+  enabled: true
+
+dogecoin-daemon:
+  enabled: true
+
+gaia-daemon:
+  enabled: true
+
+avalanche-daemon:
+  enabled: true

@@ -1,0 +1,57 @@
+########################################################################################
+# Config
+########################################################################################
+
+stages:
+  - validate
+  - build
+
+variables:
+  SCAN_KUBERNETES_MANIFESTS: "true"
+  KUBESEC_HELM_CHARTS_PATH: ./thornode-stack
+  KUBESEC_HELM_OPTIONS: --dependency-update --values thornode-stack/values.yaml --values thornode-stack/chaosnet.yaml
+
+########################################################################################
+# Gitlab Jobs
+########################################################################################
+
+include:
+  - template: Security/SAST.gitlab-ci.yml
+  - template: Security/Secret-Detection.gitlab-ci.yml
+
+sast:
+  stage: validate
+
+secret_detection:
+  stage: validate
+
+########################################################################################
+# Custom Jobs
+########################################################################################
+
+lint:
+  image: registry.gitlab.com/thorchain/devops/node-launcher@sha256:2b2d9db334392528e56bfbd83395ee5e8ca4a5017acab155c257364c07faa576
+  stage: validate
+  script:
+    - ./scripts/lint.sh
+
+check-thornode-images:
+  image: docker:20.10.12
+  stage: validate
+  services:
+    - docker:20.10.12-dind
+  before_script:
+    - apk add py3-pip jq curl
+    - pip3 install yq
+  script:
+    - ./scripts/check-thornode-images.sh
+
+build:
+  image: docker:20.10.12
+  stage: build
+  services:
+    - docker:20.10.12-dind
+  before_script:
+    - apk add coreutils findutils
+  script:
+    - ./ci/images/build.sh

@@ -1,0 +1,109 @@
+# Default values for sentinel.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+net: testnet
+
+signer:
+  name: arkeo
+  password: password
+  mnemonicSecret: ""
+  passwordSecret: ""
+
+# use in multi nodes envs
+peer:
+
+debug: false
+
+# provide custom environment variables to override config defaults:
+# https://gitlab.com/arkeo/arkeo/-/blob/develop/config/default.yaml
+env: {}
+
+arkeoApi: arkeo:1317
+chainID:
+  testnet: arkeo-testnet-v1
+  mainnet: arkeo-mainnet-v1
+  stagenet: arkeo-stagenet-v1
+
+arkeoDaemon:
+  mainnet: arkeo:27147
+  testnet: arkeo:26657
+  stagenet: arkeo:27147
+
+replicaCount: 1
+
+strategyType: Recreate
+
+image:
+  repository: ghcr.io/arkeonetwork/arkeo
+  pullPolicy: IfNotPresent
+  tag: latest
+  hash: "" # Not used for mocknet/testnet
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+persistence:
+  enabled: true
+  size:
+    testnet: 10Gi
+    mainnet: 50Gi
+    stagenet: 10Gi
+  accessMode: ReadWriteOnce
+  # existingClaim: your-pvc
+  # storageClass: "-"
+  # hostPath: /host-path
+
+service:
+  type: ClusterIP
+  port:
+    http: 3636
+
+serviceAccount:
+  # Specifies whether a service account should be created
+  create: true
+  # The name of the service account to use.
+  # If not set and create is true, a name is generated using the fullname template
+  name:
+
+priorityClassName: ""
+
+podSecurityContext: {}
+  # fsGroup: 2000
+
+securityContext: {}
+  # capabilities:
+  #   drop:
+  #   - ALL
+  # readOnlyRootFilesystem: true
+  # runAsNonRoot: true
+  # runAsUser: 1000
+
+# service:
+#   type: ClusterIP
+#   port: 80
+
+resources:
+  requests:
+    cpu: 7
+    memory: 2Gi
+  limits:
+    memory: 4Gi
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+
+global:
+  gateway:
+    enabled: false
+  images:
+    alpineK8s:
+      tag: 1.18.2
+      hash: 768491682ca99e14498ddb62973a95a664a0525ca18e7ad0eaab2621d3124f5b
+    busybox:
+      tag: latest
+      hash: caa382c432891547782ce7140fb3b7304613d3b0438834dce1cad68896ab110a

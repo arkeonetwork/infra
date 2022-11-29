@@ -1,0 +1,233 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "gateway.fullname" . }}
+data:
+  external-ip.sh: |
+    #!/bin/bash
+    # ./external-ip.sh <host_network> <service_name> <config_map>
+    #
+    # Script to extract external ip from a service:
+    # If host network returns public ip of the node
+    # If LoadBalancer returns external IP either directly or from hostname
+    # If ClusterIP return service IP
+    # If NodePort returns node IP
+
+    apk add bind-tools
+
+    HOST_NETWORK=$1
+    SERVICE=$2
+    CONFIGMAP=$3
+
+    if [ "$HOST_NETWORK" = "true" ]; then
+      external_ip=$(curl -s http://whatismyip.akamai.com)
+    else
+      type=$(kubectl get svc "$SERVICE" -o jsonpath='{.spec.type}')
+      external_ip=""
+
+      if [ "$type" = "ClusterIP" ]; then
+        external_ip=$(kubectl get svc "$SERVICE" -o jsonpath='{.spec.clusterIP}')
+      elif [ "$type" = "NodePort" ]; then
+        external_ip=$(kubectl get nodes --selector=kubernetes.io/role!=master -o jsonpath='{.items[0].status.addresses[?(@.type=="ExternalIP")].address}')
+      elif [ "$type" = "LoadBalancer" ]; then
+        # Hack TODO remove when this is fixed here https://github.com/kubernetes/kubernetes/issues/82595
+        kubectl annotate svc "$SERVICE" service.beta.kubernetes.io/aws-load-balancer-cross-zone-load-balancing-enabled=false --overwrite
+        sleep 5
+        kubectl annotate svc "$SERVICE" service.beta.kubernetes.io/aws-load-balancer-cross-zone-load-balancing-enabled=true --overwrite
+
+        while [ -z "$external_ip" ]; do
+          echo "Waiting for load balancer external endpoint..."
+          external_ip=$(kubectl get svc "$SERVICE" -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
+          if [ -z "$external_ip" ]; then
+            hostname=$(kubectl get svc "$SERVICE" -o jsonpath='{.status.loadBalancer.ingress[0].hostname}')
+            [ -n "$hostname" ] && external_ip=$(dig +short "$hostname" | sort | head -1)
+          fi
+          [ -z "$external_ip" ] && sleep 10
+        done
+      fi
+    fi
+
+    kubectl create configmap "$CONFIGMAP" --from-literal=externalIP="$external_ip" --dry-run=client -o yaml | kubectl apply -f -
+
+  nginx.conf: |
+    user  nginx;
+    worker_processes  auto;
+
+    error_log  /var/log/nginx/error.log warn;
+    pid        /var/run/nginx.pid;
+
+    events {
+      worker_connections  1024;
+    }
+
+    http {
+      include       /etc/nginx/mime.types;
+      default_type  application/octet-stream;
+      log_format  main  'remote_ip=$remote_addr remote_user=$remote_user time="$time_local" request="$request" '
+                        'status=$status bytes=$body_bytes_sent referer=$http_referer '
+                        'user_agent="$http_user_agent" forwarded_ip=$http_x_forwarded_for '
+                        'request_time=$request_time';
+
+      access_log  /var/log/nginx/access.log  main;
+
+      sendfile        on;
+      keepalive_timeout  65;
+
+      proxy_cache_path  /var/cache/nginx/arkeo levels=1:2 keys_zone=arkeo:10m;
+
+      limit_conn_zone $server_name zone=rpc_conn:10m;
+      limit_req_zone $binary_remote_addr zone=rpc_req:10m rate=1r/s;
+
+      server {
+        listen 80;
+        location /healthz {
+          access_log off;
+          return 200 "healthy\n";
+        }
+      }
+
+      {{- if .Values.validator }}
+      server {
+        listen {{ .Values.service.port.sentinel.api }};
+        location / {
+          proxy_set_header Host $http_host;
+          proxy_http_version 1.1;
+          proxy_pass http://sentinel:{{ .Values.service.port.sentinel.api }};
+        }
+      }
+      {{- end }}
+
+      {{- if .Values.api }}
+      server {
+        listen {{ .Values.service.port.api }};
+
+        location ~* ^/thorchain/(constants|inbound_addresses|lastblock|mimir|network|node|pool|queue|vault|version) {
+          proxy_hide_header Access-Control-Allow-Origin;
+          proxy_hide_header Access-Control-Allow-Methods;
+          proxy_hide_header Access-Control-Allow-Headers;
+          proxy_hide_header Access-Control-Allow-Credentials;
+          add_header Access-Control-Allow-Origin '*' always;
+          add_header Access-Control-Allow-Credentials true always;
+          add_header Access-Control-Allow-Methods 'GET,OPTIONS,POST' always;
+          add_header Access-Control-Allow-Headers 'Accept,Authorization,Cache-Control,Content-Type,DNT,If-Modified-Since,Keep-Alive,Origin,User-Agent,X-Requested-With,X-Token-Auth,X-Mx-ReqToken,X-Requested-With' always;
+
+          if ($request_method = 'OPTIONS') {
+            add_header Access-Control-Allow-Origin '*' always;
+            add_header Access-Control-Allow-Credentials true always;
+            add_header Access-Control-Allow-Methods 'GET,OPTIONS,POST' always;
+            add_header Access-Control-Allow-Headers 'Accept,Authorization,Cache-Control,Content-Type,DNT,If-Modified-Since,Keep-Alive,Origin,User-Agent,X-Requested-With,X-Token-Auth,X-Mx-ReqToken,X-Requested-With' always;
+            add_header 'Access-Control-Max-Age' 1728000 always;
+            add_header 'Content-Type' 'text/plain; charset=utf-8' always;
+            add_header 'Content-Length' 0 always;
+            return 204;
+          }
+
+          add_header Cache-Control "no-cache, must-revalidate, max-age=0" always;
+          add_header X-Cache-Status $upstream_cache_status always;
+          proxy_cache arkeo;
+          proxy_cache_lock on;
+          proxy_cache_lock_timeout 20s;
+          proxy_cache_lock_age 20s;
+          proxy_cache_valid any 5s;
+          proxy_set_header Host $http_host;
+          proxy_http_version 1.1;
+          proxy_ignore_headers X-Accel-Expires Expires Cache-Control;
+          proxy_pass http://arkeo:{{ .Values.service.port.api }};
+        }
+
+        location / {
+          proxy_hide_header Access-Control-Allow-Origin;
+          proxy_hide_header Access-Control-Allow-Methods;
+          proxy_hide_header Access-Control-Allow-Headers;
+          proxy_hide_header Access-Control-Allow-Credentials;
+          add_header Access-Control-Allow-Origin '*' always;
+          add_header Access-Control-Allow-Credentials true always;
+          add_header Access-Control-Allow-Methods 'GET,OPTIONS,POST' always;
+          add_header Access-Control-Allow-Headers 'Accept,Authorization,Cache-Control,Content-Type,DNT,If-Modified-Since,Keep-Alive,Origin,User-Agent,X-Requested-With,X-Token-Auth,X-Mx-ReqToken,X-Requested-With' always;
+
+          if ($request_method = 'OPTIONS') {
+            add_header Access-Control-Allow-Origin '*' always;
+            add_header Access-Control-Allow-Credentials true always;
+            add_header Access-Control-Allow-Methods 'GET,OPTIONS,POST' always;
+            add_header Access-Control-Allow-Headers 'Accept,Authorization,Cache-Control,Content-Type,DNT,If-Modified-Since,Keep-Alive,Origin,User-Agent,X-Requested-With,X-Token-Auth,X-Mx-ReqToken,X-Requested-With' always;
+            add_header 'Access-Control-Max-Age' 1728000 always;
+            add_header 'Content-Type' 'text/plain; charset=utf-8' always;
+            add_header 'Content-Length' 0 always;
+            return 204;
+          }
+
+          add_header Cache-Control "no-cache, must-revalidate, max-age=0" always;
+          proxy_set_header Host $http_host;
+          proxy_http_version 1.1;
+          proxy_ignore_headers X-Accel-Expires Expires Cache-Control;
+          proxy_pass http://arkeo:{{ .Values.service.port.api }};
+        }
+      }
+      {{- end }}
+
+      {{- if .Values.rpc.enabled }}
+      server {
+        listen {{ include "gateway.rpc" . }};
+
+        location /genesis {
+          proxy_set_header Host $http_host;
+          proxy_ignore_headers X-Accel-Expires Expires Cache-Control;
+          proxy_http_version 1.1;
+          proxy_set_header Upgrade $http_upgrade;
+          proxy_set_header Connection "upgrade";
+          proxy_pass http://arkeo:{{ include "gateway.rpc" . }};
+
+          add_header X-Cache-Status $upstream_cache_status always;
+          proxy_cache arkeo;
+          proxy_cache_lock on;
+          proxy_cache_valid any 300s;
+        }
+
+        {{- if .Values.rpc.limited }}
+        limit_conn rpc_conn 1;
+        limit_rate 1m;
+        limit_req zone=rpc_req;
+
+        location ~* ^/(health|status) {
+        {{- else }}
+        location / {
+        {{- end }}
+          proxy_hide_header Access-Control-Allow-Origin;
+          proxy_hide_header Access-Control-Allow-Methods;
+          proxy_hide_header Access-Control-Allow-Headers;
+          proxy_hide_header Access-Control-Allow-Credentials;
+          add_header Access-Control-Allow-Origin '*' always;
+          add_header Access-Control-Allow-Credentials true always;
+          add_header Access-Control-Allow-Methods 'GET,OPTIONS,POST' always;
+          add_header Access-Control-Allow-Headers 'Accept,Authorization,Cache-Control,Content-Type,DNT,If-Modified-Since,Keep-Alive,Origin,User-Agent,X-Requested-With,X-Token-Auth,X-Mx-ReqToken,X-Requested-With' always;
+
+          if ($request_method = 'OPTIONS') {
+            add_header Access-Control-Allow-Origin '*' always;
+            add_header Access-Control-Allow-Credentials true always;
+            add_header Access-Control-Allow-Methods 'GET,OPTIONS,POST' always;
+            add_header Access-Control-Allow-Headers 'Accept,Authorization,Cache-Control,Content-Type,DNT,If-Modified-Since,Keep-Alive,Origin,User-Agent,X-Requested-With,X-Token-Auth,X-Mx-ReqToken,X-Requested-With' always;
+            add_header 'Access-Control-Max-Age' 1728000 always;
+            add_header 'Content-Type' 'text/plain; charset=utf-8' always;
+            add_header 'Content-Length' 0 always;
+            return 204;
+          }
+
+          add_header Cache-Control "no-cache, must-revalidate, max-age=0" always;
+          proxy_set_header Host $http_host;
+          proxy_ignore_headers X-Accel-Expires Expires Cache-Control;
+          proxy_http_version 1.1;
+          proxy_set_header Upgrade $http_upgrade;
+          proxy_set_header Connection "upgrade";
+          proxy_pass http://arkeo:{{ include "gateway.rpc" . }};
+        }
+      }
+      {{- end }}
+    }
+
+
+    stream {
+      server {
+        listen {{ include "gateway.p2p" . }};
+        proxy_pass arkeo:{{ include "gateway.p2p" . }};
+      }
+    }

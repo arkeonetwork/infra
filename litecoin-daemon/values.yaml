@@ -1,0 +1,92 @@
+# Default values for litecoin-daemon.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+replicaCount: 1
+
+net: mainnet
+
+image:
+  name: registry.gitlab.com/thorchain/devops/node-launcher
+  tag: "litecoin-daemon-0.18.1"
+  hash: "18c39a716ee6f3f670d00589648f6f82b55e732365ca2f97883d23dca2afc33b"
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+persistence:
+  enabled: true
+  size:
+    testnet: 50Gi
+    stagenet: 150Gi
+    mainnet: 150Gi
+  accessMode: ReadWriteOnce
+  # storageClass: "-"
+
+serviceAccount:
+  # Specifies whether a service account should be created
+  create: true
+  # The name of the service account to use.
+  # If not set and create is true, a name is generated using the fullname template
+  name:
+
+podSecurityContext: {}
+  # fsGroup: 2000
+
+securityContext: {}
+  # capabilities:
+  #   drop:
+  #   - ALL
+  # readOnlyRootFilesystem: true
+  # runAsNonRoot: true
+  # runAsUser: 1000
+
+service:
+  type: ClusterIP
+  port:
+    mainnet:
+      p2p: 9333
+      rpc: 9332
+    stagenet:
+      p2p: 9333
+      rpc: 9332
+    testnet:
+      p2p: 19333
+      rpc: 19332
+    regtest:
+      p2p: 19444
+      rpc: 19443
+
+ingress:
+  enabled: false
+  annotations: {}
+    # kubernetes.io/ingress.class: nginx
+    # cert-manager.io/cluster-issuer: letsencrypt-production
+  hosts: []
+    # - host: midgard.example.com
+    #   paths:
+    #   - path: /
+    #     backend:
+    #       serviceName: gateway
+    #       servicePort: midgard
+  tls: []
+    # - secretName: midgard-tls
+    #   hosts:
+    #     - midgard.example.com
+
+resources:
+  limits:
+    # cpu: 1
+    memory: 5Gi
+  requests:
+    cpu: 1
+    memory: 5Gi
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+
+global: {}

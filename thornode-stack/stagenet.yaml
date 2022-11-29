@@ -1,0 +1,32 @@
+global:
+  tag: stagenet-1.100.0
+  hash: e5985516c492f29e0e50af03427feefa2a9c248f7967af0b0a3c2450ea0026df
+
+midgard:
+  image:
+    tag: 2.6.7
+    hash: 041825f08eaf8cb6830991819b0b21bc6430abbe36905a61fbac5eb80e740f92
+
+binance-daemon:
+  enabled: true
+
+bitcoin-daemon:
+  enabled: true
+
+litecoin-daemon:
+  enabled: true
+
+bitcoin-cash-daemon:
+  enabled: true
+
+ethereum-daemon:
+  enabled: true
+
+dogecoin-daemon:
+  enabled: true
+
+gaia-daemon:
+  enabled: true
+
+avalanche-daemon:
+  enabled: true

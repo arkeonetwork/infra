@@ -1,0 +1,7 @@
+apiVersion: v2
+name: ethereum-daemon
+description: Ethereum Daemon component
+type: application
+version: 0.1.0
+
+appVersion: v1.10.26

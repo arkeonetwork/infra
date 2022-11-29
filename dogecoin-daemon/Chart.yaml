@@ -1,0 +1,7 @@
+apiVersion: v2
+name: dogecoin-daemon
+description: Dogecoin Core Daemon component
+type: application
+version: 0.1.0
+
+appVersion: 1.14.6

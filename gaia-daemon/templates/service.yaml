@@ -1,0 +1,23 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "gaia-daemon.fullname" . }}
+  labels:
+    {{- include "gaia-daemon.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.service.type }}
+  ports:
+    - name: rpc
+      port: {{ include "gaia-daemon.rpc" . }}
+      targetPort: rpc
+      protocol: TCP
+    - name: p2p
+      port: {{ include "gaia-daemon.p2p" . }}
+      targetPort: p2p
+      protocol: TCP
+    - name: grpc
+      port: {{ include "gaia-daemon.grpc" . }}
+      targetPort: grpc
+      protocol: TCP
+  selector:
+    {{- include "gaia-daemon.selectorLabels" . | nindent 4 }}

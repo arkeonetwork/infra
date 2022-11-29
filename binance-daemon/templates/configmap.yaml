@@ -1,0 +1,80 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "binance-daemon.fullname" . }}-scripts
+data:
+  external-ip.sh: |
+    #!/bin/bash
+    # ./external-ip.sh <host_network> <service_name> <config_map>
+    #
+    # Script to extract external ip from a service:
+    # If host network returns public ip of the node
+    # If LoadBalancer returns external IP either directly or from hostname
+    # If ClusterIP return service IP
+    # If NodePort returns node IP
+
+    apk add bind-tools
+
+    HOST_NETWORK=$1
+    SERVICE=$2
+    CONFIGMAP=$3
+
+    if [ "$HOST_NETWORK" = "true" ]; then
+      external_ip=$(curl -s http://whatismyip.akamai.com)
+    else
+      type=$(kubectl get svc "$SERVICE" -o jsonpath='{.spec.type}')
+      external_ip=""
+
+      if [ "$type" = "ClusterIP" ]; then
+        external_ip=$(kubectl get svc "$SERVICE" -o jsonpath='{.spec.clusterIP}')
+      elif [ "$type" = "NodePort" ]; then
+        external_ip=$(kubectl get nodes --selector=kubernetes.io/role!=master -o jsonpath='{.items[0].status.addresses[?(@.type=="ExternalIP")].address}')
+      elif [ "$type" = "LoadBalancer" ]; then
+        # Hack TODO remove when this is fixed here https://github.com/kubernetes/kubernetes/issues/82595
+        kubectl annotate svc "$SERVICE" service.beta.kubernetes.io/aws-load-balancer-cross-zone-load-balancing-enabled=false --overwrite
+        kubectl annotate svc "$SERVICE" service.beta.kubernetes.io/aws-load-balancer-cross-zone-load-balancing-enabled=true --overwrite
+
+        while [ -z "$external_ip" ]; do
+          echo "Waiting for load balancer external endpoint..."
+          external_ip=$(kubectl get svc "$SERVICE" -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
+          if [ -z "$external_ip" ]; then
+            hostname=$(kubectl get svc "$SERVICE" -o jsonpath='{.status.loadBalancer.ingress[0].hostname}')
+            [ -n "$hostname" ] && external_ip=$(dig +short "$hostname" | sort | head -1)
+          fi
+          [ -z "$external_ip" ] && sleep 10
+        done
+      fi
+    fi
+
+    kubectl create configmap "$CONFIGMAP" --from-literal=externalIP="$external_ip" --dry-run=client -o yaml | kubectl apply -f -
+
+  recover.sh: |
+    #!/bin/bash
+
+    FILE=/opt/bnbchaind/.probe_last_height
+    [ ! -f "$FILE" ] && exit 0
+
+    HEIGHT=$(($(cat $FILE) - 1))
+    if [ "$HEIGHT" -gt "1" ]; then
+      su bnbchaind -c "/release/linux/state_recover $HEIGHT /opt/bnbchaind"
+    fi
+
+    # some envs inject a security context that can cause permission issues after recover
+    chown -R bnbchaind:bnbchaind /opt/bnbchaind
+
+  probe.sh: |
+    #!/bin/bash
+
+    FILE=/opt/bnbchaind/.probe_last_height
+    ENDPOINT=localhost:$BINANCE_DAEMON_SERVICE_PORT_RPC/status
+
+    STATUS=$(curl -sL --fail -m 10 "$ENDPOINT") || exit 1
+    if [ ! -f "$FILE" ]; then
+      echo "$STATUS" | jq -r ".result.sync_info.index_height" >$FILE
+      exit 1
+    fi
+
+    OLD=$(cat $FILE)
+    echo "$STATUS" | jq -r ".result.sync_info.index_height" >$FILE
+    CURRENT=$(cat $FILE)
+    [ "$OLD" == "$CURRENT" ] && exit 1 || exit 0

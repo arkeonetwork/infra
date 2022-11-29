@@ -1,0 +1,113 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "gaia-daemon.fullname" . }}
+  labels:
+    {{- include "gaia-daemon.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      {{- include "gaia-daemon.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "gaia-daemon.selectorLabels" . | nindent 8 }}
+    spec:
+    {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
+      serviceAccountName: {{ include "gaia-daemon.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+
+      {{- if .Values.hostNetwork }}
+      hostNetwork: true
+      dnsPolicy: ClusterFirstWithHostNet
+      {{- end }}
+      initContainers:
+      - name: init
+        image: alpine:{{ .Values.global.images.alpine.tag }}@sha256:{{ .Values.global.images.alpine.hash }}
+        command:
+          - /scripts/init.sh
+        volumeMounts:
+          - name: scripts
+            mountPath: /scripts
+          - name: data
+            mountPath: /root/.gaia
+      containers:
+      - name: {{ .Chart.Name }}
+        securityContext:
+          {{- toYaml .Values.securityContext | nindent 12 }}
+        image: {{ .Values.image.name }}:{{ .Values.image.tag }}@sha256:{{ .Values.image.hash }}
+        imagePullPolicy: IfNotPresent
+        volumeMounts:
+          - name: data
+            mountPath: /root/.gaia
+          - name: scripts
+            mountPath: /scripts
+        ports:
+          - name: lcd
+            containerPort: 1317
+          - name: rpc
+            containerPort: {{ include "gaia-daemon.rpc" . }}
+            protocol: TCP
+          - name: p2p
+            containerPort: {{ include "gaia-daemon.p2p" . }}
+            protocol: TCP
+          - name: grpc
+            containerPort: {{ include "gaia-daemon.grpc" . }}
+            protocol: TCP
+        startupProbe:
+          failureThreshold: 60
+          periodSeconds: 30
+          timeoutSeconds: 10
+          exec:
+            command:
+              - /scripts/probe.sh
+        livenessProbe:
+          timeoutSeconds: 10
+          periodSeconds: 30
+          exec:
+            command:
+              - /scripts/probe.sh
+        readinessProbe:
+          timeoutSeconds: 10
+          httpGet:
+            path: /status
+            port: rpc
+        resources:
+        {{- if not (eq (include "gaia-daemon.net" . ) "mocknet") }}
+          {{- toYaml .Values.resources | nindent 12 }}
+        {{- end }}
+      volumes:
+      - name: data
+      {{- if and .Values.persistence.enabled (not .Values.persistence.hostPath) }}
+        persistentVolumeClaim:
+          claimName: {{ if .Values.persistence.existingClaim }}{{ .Values.persistence.existingClaim }}{{- else }}{{ template "gaia-daemon.fullname" . }}{{- end }}
+      {{- else if and .Values.persistence.enabled .Values.persistence.hostPath }}
+        hostPath:
+          path: {{ .Values.persistence.hostPath }}
+          type: DirectoryOrCreate
+      {{- else }}
+        emptyDir: {}
+      {{- end }}
+      - name: scripts
+        configMap:
+          name: {{ include "gaia-daemon.fullname" . }}-scripts
+          defaultMode: 0777
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+    {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
+    {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}

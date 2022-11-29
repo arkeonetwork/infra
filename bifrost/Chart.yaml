@@ -1,0 +1,7 @@
+apiVersion: v2
+name: bifrost
+description: THORNode Bifrost component used to observe and sign external block chains.
+type: application
+version: 0.1.0
+
+appVersion: 0.17.0

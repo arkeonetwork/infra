@@ -1,0 +1,7 @@
+apiVersion: v2
+name: sentinel
+description: Arkeo Sentinel component used to proxy requests
+type: application
+version: 0.1.0
+
+appVersion: 0.1.0

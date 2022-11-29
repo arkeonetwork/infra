@@ -1,0 +1,78 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "gaia-daemon.fullname" . }}-scripts
+data:
+  probe.sh: |
+    #!/bin/bash
+
+    set -euo pipefail
+
+    FILE=/root/.gaia/.probe_last_height
+    ENDPOINT=localhost:$GAIA_DAEMON_SERVICE_PORT/status
+
+    STATUS=$(curl -s --fail -m 20 "$ENDPOINT") || exit 1
+    if [ ! -f "$FILE" ]; then
+      echo "$STATUS" | jq -r ".result.sync_info.latest_block_height" >$FILE
+      exit 1
+    fi
+
+    OLD=$(cat $FILE)
+    echo "$STATUS" | jq -r ".result.sync_info.latest_block_height" > $FILE
+    CURRENT=$(cat $FILE)
+    [ "$OLD" == "$CURRENT" ] && exit 1 || exit 0
+
+  init.sh: |
+    #!/bin/sh
+
+    set -euo pipefail
+
+    mkdir -p /root/.gaia/config
+
+    # pull genesis if it does not exist
+    if [ ! -f "/root/.gaia/config/genesis.json" ]; then
+      cd /root/.gaia/config
+      wget https://github.com/cosmos/mainnet/raw/master/genesis/genesis.cosmoshub-4.json.gz
+      gunzip genesis.cosmoshub-4.json.gz
+      mv genesis.cosmoshub-4.json genesis.json
+    fi
+
+    # pull the latest address book
+    if [ -f /root/.gaia/config/addrbook.json ]; then
+      mv /root/.gaia/config/addrbook.json /root/.gaia/config/addrbook.json.bak
+      wget -O /root/.gaia/config/addrbook.json https://quicksync.io/addrbook.cosmos.json || mv addrbook.json.bak addrbook.json
+    else
+      wget -O /root/.gaia/config/addrbook.json https://quicksync.io/addrbook.cosmos.json
+    fi
+
+    # skip snapshot pull and cleanup tar if we already have a data directory
+    if [ -d "/root/.gaia/data" ]; then
+      echo "cleaning snapshot data..."
+      rm -f /root/.gaia/*.lz4
+      exit 0
+    fi
+
+    cd /root/.gaia
+    apk add aria2 curl jq lz4
+
+    # fetch snapshot url
+    URL=`curl -L https://quicksync.io/cosmos.json | jq -r '.[] |select(.file=="cosmoshub-4-pruned")|.url'`
+
+    # clean stale snapshots
+    if ls /root/.gaia/cosmoshub-4-* >/dev/null 2>&1; then
+      ls /root/.gaia/cosmoshub-4-* | while read line; do
+        if [ "$(basename $URL)" = "$(basename $line)" ] || [ "$(basename $URL).aria2" = "$(basename $line)" ]; then
+          echo "leaving snapshot to resume: $line"
+        else
+          echo "cleaning stale snapshot: $line"
+          rm $line
+        fi
+      done
+    fi
+
+    # pull snapshot
+    aria2c -c -x5 $URL
+    lz4 -d `basename $URL` | tar xf -
+
+    # cleanup
+    rm /root/.gaia/*.lz4

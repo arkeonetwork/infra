@@ -1,0 +1,65 @@
+{{- if and .Values.autoupdate.enabled (eq .Values.type "fullnode") }}
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: {{ include "thornode.fullname" . }}-autoupdate
+  labels:
+{{ include "thornode.labels" . | nindent 4 }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ include "thornode.fullname" . }}-autoupdate
+  labels:
+{{ include "thornode.labels" . | nindent 4 }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: {{ include "thornode.fullname" . }}-autoupdate
+subjects:
+  - kind: ServiceAccount
+    name: {{ include "thornode.fullname" . }}-autoupdate
+    namespace: {{ .Release.Namespace }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: {{ include "thornode.fullname" . }}-autoupdate
+  labels:
+{{ include "thornode.labels" . | nindent 4 }}
+rules:
+- apiGroups: ["apps"]
+  resources: ["deployments"]
+  verbs: ["get", "patch"]
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: {{ include "thornode.fullname" . }}-autoupdate
+  labels:
+    {{- include "thornode.labels" . | nindent 4 }}
+spec:
+  schedule: "0 * * * *"
+  successfulJobsHistoryLimit: 6
+  failedJobsHistoryLimit: 6
+  jobTemplate:
+    spec:
+      backoffLimit: 0
+      template:
+        spec:
+          restartPolicy: Never
+          serviceAccountName: {{ include "thornode.fullname" . }}-autoupdate
+          containers:
+            - name: autoupdate
+              image: alpine/k8s:{{ .Values.global.images.alpineK8s.tag }}@sha256:{{ .Values.global.images.alpineK8s.hash }}
+              command:
+                - /scripts/auto-update.sh
+              volumeMounts:
+                - name: scripts
+                  mountPath: /scripts
+          volumes:
+            - configMap:
+                defaultMode: 0555
+                name: {{ include "thornode.fullname" . }}-scripts
+              name: scripts
+{{- end }}

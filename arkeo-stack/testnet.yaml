@@ -1,0 +1,33 @@
+global:
+  tag: testnet
+
+midgard:
+  enabled: false
+  blockstore:
+    enabled: true
+    remote: https://storage.googleapis.com/public-snapshots-ninerealms/midgard-blockstore/testnet/v2/
+    size: 10Gi
+
+binance-daemon:
+  enabled: false
+
+bitcoin-daemon:
+  enabled: true
+
+litecoin-daemon:
+  enabled: false
+
+bitcoin-cash-daemon:
+  enabled: false
+
+ethereum-daemon:
+  enabled: false
+
+dogecoin-daemon:
+  enabled: false
+
+gaia-daemon:
+  enabled: false
+
+avalanche-daemon:
+  enabled: false

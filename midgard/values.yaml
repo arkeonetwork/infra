@@ -1,0 +1,112 @@
+# Default values for midgard.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+thorApi: thornode:1317
+thorDaemon:
+  mainnet: thornode:27147
+  testnet: thornode:26657
+  stagenet: thornode:27147
+
+postgres:
+  port: 5432
+  database: midgard
+  username: midgard
+  password: password
+
+net: mainnet
+
+blockstore:
+  enabled: false
+  remote: https://storage.googleapis.com/public-snapshots-ninerealms/midgard-blockstore/v2/
+  size: 50Gi
+
+replicaCount: 1
+
+logLevel: info
+
+image:
+  name: registry.gitlab.com/thorchain/midgard
+  tag: "" # When tag is empty it defaults to the chart appVersion.
+  hash: 10068213fa693f45143f343120afe820c337a43e92107f93d3212f02dbcc1514
+
+timescaleDbImage:
+  repository: timescale/timescaledb
+  tag: 2.2.0-pg13
+  hash: 2cf41fb086b551efa0192ac5b7bdb2447b9c72de4f9be8affc102acf3acb0f3b
+
+service:
+  type: ClusterIP
+  port: 8080
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+persistence:
+  enabled: true
+  size:
+    testnet: 50Gi
+    stagenet: 100Gi
+    mainnet: 200Gi
+  accessMode: ReadWriteOnce
+  # storageClass: "-"
+
+serviceAccount:
+  # Specifies whether a service account should be created
+  create: true
+  # The name of the service account to use.
+  # If not set and create is true, a name is generated using the fullname template
+  name:
+
+podSecurityContext: {}
+  # fsGroup: 2000
+
+securityContext: {}
+  # capabilities:
+  #   drop:
+  #   - ALL
+  # readOnlyRootFilesystem: true
+  # runAsNonRoot: true
+  # runAsUser: 1000
+
+ingress:
+  enabled: false
+  annotations: {}
+    # kubernetes.io/ingress.class: nginx
+    # kubernetes.io/tls-acme: "true"
+  hosts:
+    - host: chart-example.local
+      paths: []
+  tls: []
+  #  - secretName: chart-example-tls
+  #    hosts:
+  #      - chart-example.local
+
+resources:
+  midgard:
+    requests:
+      cpu: 0.5
+      memory: 512Mi
+    # limits:
+    # cpu: 0.5
+    # memory: 512Mi
+  timescaledb:
+    requests:
+      cpu: 2
+      memory: 3Gi
+    # limits:
+    # cpu: 2
+    # memory: 3Gi
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+
+global:
+  images:
+    busybox:
+      tag: latest
+      hash: caa382c432891547782ce7140fb3b7304613d3b0438834dce1cad68896ab110a

@@ -1,0 +1,39 @@
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: mirror
+spec:
+  # Every 24 hours.
+  schedule: "0 0 * * *"
+  concurrencyPolicy: Forbid
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          labels:
+            app: mirror
+        spec:
+          restartPolicy: OnFailure
+          containers:
+          - name: mirror
+            image: bitnami/git:2.36.0@sha256:27b3dd2348e8816f0f52ca1e62763846e15311117b95a1238bd00fce6e78fbd7
+            imagePullPolicy: IfNotPresent
+            command: [ "/app/entrypoint.sh", "/app/repos", "/backups" ]
+            volumeMounts:
+            - mountPath: /app
+              name: app
+            - mountPath: /backups
+              name: backups
+            resources:
+              requests:
+                cpu: 500m
+                memory: 256Mi
+          volumes:
+          - name: app
+            configMap:
+              name: mirror-app
+              defaultMode: 0555
+          - name: backups
+            persistentVolumeClaim:
+              claimName: mirror-backups

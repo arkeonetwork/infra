@@ -1,0 +1,7 @@
+apiVersion: v2
+name: bitcoin-daemon
+description: Bitcoin Core Daemon component
+type: application
+version: 0.1.0
+
+appVersion: "22.0"

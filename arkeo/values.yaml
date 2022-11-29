@@ -1,0 +1,120 @@
+# Default values for arkeo.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+net: testnet
+type: validator
+
+autoupdate:
+  enabled: false
+
+signer:
+  name: arkeo
+  password: password
+  mnemonicSecret: ""
+  passwordSecret: ""
+
+peer:
+peerApi:
+
+# See docs/Thornode-Snapshot-Recovery-and-Storage-Management.md for details.
+statesync:
+  auto: false
+  snapshotInterval: 0
+
+# provide custom environment variables to override config defaults:
+# https://gitlab.com/arkeo/arkeo/-/blob/develop/config/default.yaml
+env: {}
+
+debug: false
+chainID:
+  testnet: arkeo-testnet-v1
+  mainnet: arkeo-mainnet-v1
+  stagenet: arkeo-stagenet-v1
+
+haltHeight:
+
+replicaCount: 1
+
+strategyType: Recreate
+
+image:
+  repository: ghcr.io/arkeonetwork/arkeo
+  pullPolicy: IfNotPresent
+  tag: latest
+  hash: "" # Not used for mocknet/testnet
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+service:
+  type: ClusterIP
+  port:
+    api: 1317
+    testnet:
+      p2p: 26656
+      rpc: 26657
+    stagenet:
+      p2p: 27146
+      rpc: 27147
+    mainnet:
+      p2p: 27146
+      rpc: 27147
+
+persistence:
+  enabled: true
+  size:
+    testnet: 256Gi
+    stagenet: 512Gi
+    mainnet: 512Gi
+  accessMode: ReadWriteOnce
+  # existingClaim: your-pvc
+  # storageClass: "-"
+  # hostPath: /host-path
+  # subPath: subpath
+
+serviceAccount:
+  # Specifies whether a service account should be created
+  create: true
+  # The name of the service account to use.
+  # If not set and create is true, a name is generated using the fullname template
+  name:
+
+priorityClassName: ""
+
+podSecurityContext: {}
+  # fsGroup: 2000
+
+securityContext: {}
+  # capabilities:
+  #   drop:
+  #   - ALL
+  # readOnlyRootFilesystem: true
+  # runAsNonRoot: true
+  # runAsUser: 1000
+
+resources:
+  requests:
+    cpu: 4
+    memory: 4Gi
+  limits:
+    # cpu: 2
+    # memory: 4Gi
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+
+global:
+  gateway:
+    enabled: false
+  images:
+    alpineK8s:
+      tag: 1.18.2
+      hash: 768491682ca99e14498ddb62973a95a664a0525ca18e7ad0eaab2621d3124f5b
+    busybox:
+      tag: latest
+      hash: caa382c432891547782ce7140fb3b7304613d3b0438834dce1cad68896ab110a

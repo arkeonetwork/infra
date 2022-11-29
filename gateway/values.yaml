@@ -1,0 +1,98 @@
+# Default values for gateway.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+net: mainnet
+
+validator: true
+midgard: false
+rpc:
+  enabled: true
+  limited: true
+api: false
+
+# whitelistIPs contains a list of allowed IP addresses or CIDRs. Defaults to allow all
+# traffic if not provided.
+whitelistIPs: []
+
+replicaCount: 1
+
+image:
+  name: nginx
+  tag: 1.23.1-alpine
+  hash: c1b0849508fe00ded75824a48c28c51bd0818b335a50aba1c904b13942b9422f
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+service:
+  type: LoadBalancer
+  port:
+    sentinel:
+      api: 3636
+    api: 1317
+    mainnet:
+      p2p: 27146
+      rpc: 27147
+    stagenet:
+      p2p: 27146
+      rpc: 27147
+    testnet:
+      p2p: 26656
+      rpc: 26657
+
+serviceAccount:
+  # Specifies whether a service account should be created
+  create: true
+  # The name of the service account to use.
+  # If not set and create is true, a name is generated using the fullname template
+  name:
+
+ingress:
+  enabled: false
+  annotations: {}
+    # kubernetes.io/ingress.class: nginx
+    # cert-manager.io/cluster-issuer: letsencrypt-production
+  hosts: []
+    # - host: midgard.example.com
+    #   paths:
+    #   - path: /
+    #     backend:
+    #       serviceName: gateway
+    #       servicePort: midgard
+  tls: []
+    # - secretName: midgard-tls
+    #   hosts:
+    #     - midgard.example.com
+
+podSecurityContext: {}
+  # fsGroup: 2000
+
+securityContext: {}
+  # capabilities:
+  #   drop:
+  #   - ALL
+  # readOnlyRootFilesystem: true
+  # runAsNonRoot: true
+  # runAsUser: 1000
+
+resources:
+  limits:
+    cpu: 0.2
+    memory: 256Mi
+  requests:
+    cpu: 0.2
+    memory: 256Mi
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+
+global:
+  images:
+    alpineK8s:
+      tag: 1.18.2
+      hash: sha256:768491682ca99e14498ddb62973a95a664a0525ca18e7ad0eaab2621d3124f5b

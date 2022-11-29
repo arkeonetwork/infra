@@ -1,0 +1,7 @@
+apiVersion: v2
+name: litecoin-daemon
+description: Litecoin Core Daemon component
+type: application
+version: 0.1.0
+
+appVersion: 0.18.1

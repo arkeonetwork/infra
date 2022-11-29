@@ -1,0 +1,94 @@
+# Default values for ethereum-daemon.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+net: mainnet
+
+replicaCount: 1
+
+image:
+  eth:
+    name: ethereum/client-go
+    tag: "" # When tag is empty it defaults to the chart appVersion.
+    hash: 03604c12f6123fda67f534c9a68a73dbabd35d5c0a13f0c6cfcf735cfd8760c8
+  prysm:
+    name: gcr.io/prysmaticlabs/prysm/beacon-chain
+    tag: v3.1.2
+    hash: 140aa344814fee97a5ef9ee873e69f4c851972b388588f74ea7d26b4842dc9c3
+  scripts:
+    repository: registry.gitlab.com/thorchain/thornode
+    pullPolicy: IfNotPresent
+    tag: mocknet
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  # Specifies whether a service account should be created
+  create: true
+  # The name of the service account to use.
+  # If not set and create is true, a name is generated using the fullname template
+  name:
+
+podSecurityContext: {}
+  # fsGroup: 2000
+
+securityContext: {}
+  # capabilities:
+  #   drop:
+  #   - ALL
+  # readOnlyRootFilesystem: true
+  # runAsNonRoot: true
+  # runAsUser: 1000
+
+service:
+  type: ClusterIP
+  port: 8545
+
+ingress:
+  enabled: false
+  annotations: {}
+    # kubernetes.io/ingress.class: nginx
+    # cert-manager.io/cluster-issuer: letsencrypt-production
+  hosts: []
+    # - host: midgard.example.com
+    #   paths:
+    #   - path: /
+    #     backend:
+    #       serviceName: gateway
+    #       servicePort: midgard
+  tls: []
+    # - secretName: midgard-tls
+    #   hosts:
+    #     - midgard.example.com
+
+persistence:
+  enabled: true
+  size:
+    testnet: 300Gi
+    stagenet: 900Gi
+    mainnet: 1228Gi
+  accessMode: ReadWriteOnce
+  # storageClass: "-"
+  #
+resources:
+  limits:
+    # cpu: 1
+    memory: 12Gi
+  requests:
+    cpu: 2
+    memory: 12Gi
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+
+# necessary for lint
+global:
+  images:
+    alpine:
+      tag: foo
+      hash: bar

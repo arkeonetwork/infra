@@ -1,0 +1,39 @@
+dependencies:
+- name: gateway
+  repository: file://../gateway
+  version: 0.1.0
+- name: thornode
+  repository: file://../thornode
+  version: 0.1.0
+- name: bifrost
+  repository: file://../bifrost
+  version: 0.1.0
+- name: midgard
+  repository: file://../midgard
+  version: 0.1.0
+- name: binance-daemon
+  repository: file://../binance-daemon
+  version: 0.1.0
+- name: bitcoin-daemon
+  repository: file://../bitcoin-daemon
+  version: 0.1.0
+- name: litecoin-daemon
+  repository: file://../litecoin-daemon
+  version: 0.1.0
+- name: bitcoin-cash-daemon
+  repository: file://../bitcoin-cash-daemon
+  version: 0.1.0
+- name: ethereum-daemon
+  repository: file://../ethereum-daemon
+  version: 0.1.0
+- name: dogecoin-daemon
+  repository: file://../dogecoin-daemon
+  version: 0.1.0
+- name: gaia-daemon
+  repository: file://../gaia-daemon
+  version: 0.1.0
+- name: avalanche-daemon
+  repository: file://../avalanche-daemon
+  version: 0.1.0
+digest: sha256:dc208d3c5889f31c4acb64e6a9ed2465200dc165e68a28b0fbe51f14ddf5b074
+generated: "2022-07-08T10:40:48.679911646-04:00"

@@ -1,0 +1,53 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "ethereum-daemon.fullname" . }}-scripts
+data:
+  init-beacon.sh: |
+    #!/bin/sh
+
+    set -euo pipefail
+    apk add openssl
+    openssl rand -hex 32 | tr -d "\n" > /data/jwt.hex
+
+  init-beacon-testnet.sh: |
+    #!/bin/sh
+
+    set -euo pipefail
+
+    mkdir -p /data/beacon
+    if [ ! -f /data/beacon/genesis.ssz ]; then
+      wget -O /data/beacon/genesis.ssz https://github.com/eth-clients/merge-testnets/raw/main/ropsten-beacon-chain/genesis.ssz
+    fi
+
+  probe.sh: |
+    #!/bin/sh
+
+    FILE=/root/.probe_last_height
+
+    if [ "$NET" = "testnet" ]; then
+      SYNCING=$(geth --ropsten attach --exec eth.syncing) || exit 1
+      HEIGHT=$(geth --ropsten attach --exec eth.blockNumber) ||  exit 1
+    else
+      SYNCING=$(geth attach --exec eth.syncing) || exit 1
+      HEIGHT=$(geth attach --exec eth.blockNumber) || exit 1
+    fi
+
+    # first time we are syncing from scratch
+    if [ "$HEIGHT" = "0" ]; then
+      exit 0
+    fi
+
+    if [ ! -f "$FILE" ]; then
+      echo "$HEIGHT" >$FILE
+      echo "Not getting new blocks"
+      exit 1
+    fi
+
+    OLD=$(cat $FILE)
+    echo "$HEIGHT" >$FILE
+    if [ "$OLD" = "$HEIGHT" ]; then
+      echo "Not getting new blocks"
+      exit 1
+    fi
+    exit 0

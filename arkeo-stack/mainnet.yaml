@@ -1,0 +1,40 @@
+global:
+  tag: latest
+  hash: 3e735d6a829bac86d43385801d04b031bd566e96b10ea54b287c82cdf4c83d41
+
+arkeo:
+  haltHeight:
+  statesync:
+    auto: false
+    snapshotInterval: 0
+
+midgard:
+  enabled: false
+  blockstore:
+    enabled: true
+    remote: https://storage.googleapis.com/public-snapshots-ninerealms/midgard-blockstore/mainnet/v2/
+    size: 20Gi
+
+binance-daemon:
+  enabled: false
+
+bitcoin-daemon:
+  enabled: true
+
+litecoin-daemon:
+  enabled: false
+
+bitcoin-cash-daemon:
+  enabled: false
+
+ethereum-daemon:
+  enabled: false
+
+dogecoin-daemon:
+  enabled: false
+
+gaia-daemon:
+  enabled: false
+
+avalanche-daemon:
+  enabled: false

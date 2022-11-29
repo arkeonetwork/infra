@@ -1,0 +1,156 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "sentinel.fullname" . }}
+  labels:
+    {{- include "sentinel.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  strategy:
+    type: {{ .Values.strategyType }}
+  selector:
+    matchLabels:
+      {{- include "sentinel.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "sentinel.selectorLabels" . | nindent 8 }}
+    spec:
+    {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
+      serviceAccountName: {{ include "sentinel.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+
+      {{- if .Values.priorityClassName }}
+      priorityClassName: {{ .Values.priorityClassName }}
+      {{- end }}
+
+      initContainers:
+      - name: init-external-ip
+        image: alpine/k8s:{{ .Values.global.images.alpineK8s.tag }}@sha256:{{ .Values.global.images.alpineK8s.hash }}
+        {{- if .Values.global.gateway.enabled }}
+        command: ['/scripts/external-ip.sh', 'false', '{{ .Values.global.gateway.name }}', '{{ include "sentinel.fullname" . }}-external-ip']
+        {{- else }}
+        command: ['/scripts/external-ip.sh', 'false', '{{ include "sentinel.fullname" . }}', '{{ include "sentinel.fullname" . }}-external-ip']
+        {{- end }}
+        volumeMounts:
+        - name: scripts
+          mountPath: /scripts
+      - name: init-keepalive
+        image: busybox:{{ .Values.global.images.busybox.tag }}@sha256:{{ .Values.global.images.busybox.hash }}
+        command:
+        - /bin/sh
+        - -c
+        - |
+          sysctl -w net.ipv4.tcp_keepalive_time=120
+          sysctl -w net.ipv4.tcp_keepalive_intvl=60
+          sysctl -w net.ipv4.tcp_keepalive_probes=3
+        securityContext:
+          privileged: true
+      - name: init-arkeo
+        image: busybox:{{ .Values.global.images.busybox.tag }}@sha256:{{ .Values.global.images.busybox.hash }}
+        command: ['sh', '-c', 'until nc -zv {{ .Values.arkeoApi }}; do echo waiting for arkeo; sleep 2; done']
+      containers:
+        - name: {{ .Chart.Name }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          image: {{ include "sentinel.image" . }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          command: ["/scripts/sentinel.sh"]
+          {{- if .Values.debug }}
+          args: ["sentinel", "-l", "debug"]
+          {{- else }}
+          args: ["sentinel"]
+          {{- end }}
+          volumeMounts:
+            - mountPath: /var/data/sentinel
+              name: data
+              subPath: data
+            - mountPath: /root/.arkeo
+              name: data
+              subPath: arkeo
+            - mountPath: /etc/sentinel
+              name: data
+              subPath: etc
+          env:
+            - name: EXTERNAL_IP
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ include "sentinel.fullname" . }}-external-ip
+                  key: externalIP
+            # VALIDATOR is used by /scripts/node-status.sh to enable chain sync checks.
+            - name: VALIDATOR
+              value: "true"
+            - name: NET
+              value: {{ include "sentinel.net" . }}
+            - name: SOURCE_CHAIN
+              value: "http://{{ .Values.arkeoApi }}"
+            - name: EVENT_STREAM_HOST
+              value: {{ include "sentinel.arkeoDaemon" . }}
+            - name: PEER
+              value: {{ default .Values.peer .Values.global.peer }}
+            - name: SIGNER_NAME
+              value: {{ .Values.signer.name }}
+            - name: SIGNER_PASSWD
+              {{- if default .Values.signer.passwordSecret .Values.global.passwordSecret }}
+              valueFrom:
+                secretKeyRef:
+                  name: {{ default .Values.signer.passwordSecret .Values.global.passwordSecret }}
+                  key: password
+              {{- else}}
+              value: {{ .Values.signer.password }}
+              {{- end }}
+            {{- if default .Values.signer.mnemonicSecret .Values.global.mnemonicSecret }}
+            - name: SIGNER_SEED_PHRASE
+              valueFrom:
+                secretKeyRef:
+                  name: {{ default .Values.signer.mnemonicSecret .Values.global.mnemonicSecret }}
+                  key: mnemonic
+            {{- end }}
+            - name: CHAIN_ID
+              value: {{ include "sentinel.chainID" . }}
+            {{- range $key, $value := .Values.env }}
+            - name: {{ $key }}
+              value: {{ $value | quote }}
+            {{- end }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.service.port.http }}
+              protocol: TCP
+            - name: prometheus
+              containerPort: 9000
+              protocol: TCP
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+
+      volumes:
+      - name: data
+      {{- if and .Values.persistence.enabled (not .Values.persistence.hostPath) }}
+        persistentVolumeClaim:
+          claimName: {{ if .Values.persistence.existingClaim }}{{ .Values.persistence.existingClaim }}{{- else }}{{ template "sentinel.fullname" . }}{{- end }}
+      {{- else if and .Values.persistence.enabled .Values.persistence.hostPath }}
+        hostPath:
+          path: {{ .Values.persistence.hostPath }}
+          type: DirectoryOrCreate
+      {{- else }}
+        emptyDir: {}
+      {{- end }}
+      - name: scripts
+        configMap:
+          name: {{ include "sentinel.fullname" . }}-scripts
+          defaultMode: 0777
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+    {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
+    {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}

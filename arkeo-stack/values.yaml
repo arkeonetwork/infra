@@ -1,0 +1,59 @@
+global:
+  net: mainnet
+  gateway:
+    enabled: true
+    name: gateway
+  images:
+    alpine:
+      tag: latest
+      hash: 4edbd2beb5f78b1014028f4fbb99f3237d9561100b6881aabbf5acce2c4f9454
+    alpineK8s:
+      tag: 1.18.2
+      hash: 768491682ca99e14498ddb62973a95a664a0525ca18e7ad0eaab2621d3124f5b
+    busybox:
+      tag: latest
+      hash: caa382c432891547782ce7140fb3b7304613d3b0438834dce1cad68896ab110a
+
+gateway:
+  fullnameOverride: gateway
+
+arkeo:
+  fullnameOverride: arkeo
+
+sentinel:
+  fullnameOverride: sentinel
+
+midgard:
+  enabled: false
+  fullnameOverride: midgard
+
+binance-daemon:
+  enabled: false
+  fullnameOverride: binance-daemon
+
+bitcoin-daemon:
+  fullnameOverride: bitcoin-daemon
+
+litecoin-daemon:
+  enabled: false
+  fullnameOverride: litecoin-daemon
+
+bitcoin-cash-daemon:
+  enabled: false
+  fullnameOverride: bitcoin-cash-daemon
+
+ethereum-daemon:
+  enabled: false
+  fullnameOverride: ethereum-daemon
+
+dogecoin-daemon:
+  enabled: false
+  fullnameOverride: dogecoin-daemon
+
+gaia-daemon:
+  enabled: false
+  fullnameOverride: gaia-daemon
+
+avalanche-daemon:
+  enabled: false
+  fullnameOverride: avalanche-daemon

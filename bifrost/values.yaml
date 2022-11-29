@@ -1,0 +1,173 @@
+# Default values for bifrost.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+net: testnet
+
+signer:
+  name: thorchain
+  password: password
+  mnemonicSecret: ""
+  passwordSecret: ""
+
+# use in multi nodes envs
+peer:
+
+debug: false
+
+# provide custom environment variables to override config defaults:
+# https://gitlab.com/thorchain/thornode/-/blob/develop/config/default.yaml
+env: {}
+
+thorApi: thornode:1317
+chainID:
+  testnet: thorchain-testnet-v2
+  mainnet: thorchain-mainnet-v1
+  stagenet: thorchain-stagenet-v2
+
+thorDaemon:
+  mainnet: thornode:27147
+  testnet: thornode:26657
+  stagenet: thornode:27147
+
+binanceDaemon:
+  enabled: true
+  mainnet: http://binance-daemon:27147
+  testnet: http://binance-daemon:26657
+  stagenet: http://binance-daemon:27147
+
+bitcoinDaemon:
+  enabled: true
+  mainnet: bitcoin-daemon:8332
+  testnet: bitcoin-daemon:18332
+  mocknet: bitcoin-daemon:18443
+  stagenet: bitcoin-daemon:8332
+
+litecoinDaemon:
+  enabled: true
+  mainnet: litecoin-daemon:9332
+  testnet: litecoin-daemon:19332
+  mocknet: litecoin-daemon:19443
+  stagenet: litecoin-daemon:9332
+
+bitcoinCashDaemon:
+  enabled: true
+  mainnet: bitcoin-cash-daemon:8332
+  testnet: bitcoin-cash-daemon:18332
+  mocknet: bitcoin-cash-daemon:18443
+  stagenet: bitcoin-cash-daemon:8332
+
+dogecoinDaemon:
+  enabled: true
+  mainnet: dogecoin-daemon:22555
+  testnet: dogecoin-daemon:44555
+  mocknet: dogecoin-daemon:18443
+  stagenet: dogecoin-daemon:22555
+
+ethereumDaemon:
+  enabled: true
+  mainnet: http://ethereum-daemon:8545
+  testnet: http://ethereum-daemon:8545
+  mocknet: http://ethereum-daemon:8545
+  stagenet: http://ethereum-daemon:8545
+
+terraDaemon:
+  enabled: false
+  mainnet: http://terra-daemon:26657
+  stagenet: http://terra-daemon:26657
+
+gaiaDaemon:
+  enabled: true
+  mainnet:
+    rpc: http://gaia-daemon:26657
+    grpc: gaia-daemon:9090
+    grpcTLS: false
+  stagenet:
+    rpc: http://gaia-daemon:26657
+    grpc: gaia-daemon:9090
+    grpcTLS: false
+  testnet: {}
+
+avaxDaemon:
+  enabled: true
+  mainnet: http://avalanche-daemon:9650/ext/bc/C/rpc
+  stagenet: http://avalanche-daemon:9650/ext/bc/C/rpc
+
+replicaCount: 1
+
+strategyType: Recreate
+
+image:
+  repository: registry.gitlab.com/thorchain/thornode
+  pullPolicy: IfNotPresent
+  tag: testnet
+  hash: "" # Not used for mocknet/testnet
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+persistence:
+  enabled: true
+  size:
+    testnet: 10Gi
+    mainnet: 50Gi
+    stagenet: 10Gi
+  accessMode: ReadWriteOnce
+  # existingClaim: your-pvc
+  # storageClass: "-"
+  # hostPath: /host-path
+
+service:
+  type: ClusterIP
+  port:
+    p2p: 5040
+    http: 6040
+
+serviceAccount:
+  # Specifies whether a service account should be created
+  create: true
+  # The name of the service account to use.
+  # If not set and create is true, a name is generated using the fullname template
+  name:
+
+priorityClassName: ""
+
+podSecurityContext: {}
+  # fsGroup: 2000
+
+securityContext: {}
+  # capabilities:
+  #   drop:
+  #   - ALL
+  # readOnlyRootFilesystem: true
+  # runAsNonRoot: true
+  # runAsUser: 1000
+
+# service:
+#   type: ClusterIP
+#   port: 80
+
+resources:
+  requests:
+    cpu: 7
+    memory: 2Gi
+  limits:
+    memory: 4Gi
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+
+global:
+  gateway:
+    enabled: false
+  images:
+    alpineK8s:
+      tag: 1.18.2
+      hash: 768491682ca99e14498ddb62973a95a664a0525ca18e7ad0eaab2621d3124f5b
+    busybox:
+      tag: latest
+      hash: caa382c432891547782ce7140fb3b7304613d3b0438834dce1cad68896ab110a

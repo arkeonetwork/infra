@@ -1,0 +1,110 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "dogecoin-daemon.fullname" . }}
+  labels:
+    {{- include "dogecoin-daemon.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      {{- include "dogecoin-daemon.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "dogecoin-daemon.selectorLabels" . | nindent 8 }}
+    spec:
+    {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
+      serviceAccountName: {{ include "dogecoin-daemon.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      containers:
+        - name: {{ .Chart.Name }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          image: {{ .Values.image.name }}:{{ .Values.image.tag }}@sha256:{{ .Values.image.hash }}
+          imagePullPolicy: IfNotPresent
+          {{- if eq (include "dogecoin-daemon.net" .) "mocknet" }}
+          command: ["/scripts/entrypoint-mock.sh"]
+          {{- else if eq (include "dogecoin-daemon.net" .) "testnet" }}
+          args:
+            - -testnet
+            - -printtoconsole
+            - -debug=alert
+            - -debug=db
+            - -debug=proxy
+            - -debug=prune
+            - -debug=reindex
+            - -txindex
+            - -rpcallowip=10.0.0.0/8
+            - -rpcbind=0.0.0.0
+            - -rpcauth=thorchain:d7e53bb9757b6d4fabf87775c7824b5c$7097e9cde30ef4319ed708fc559267679ae6cc0bf7e18fd49b283650c0c26a10
+          {{- else }} # mainnet / stagenet
+          args:
+            - -printtoconsole
+            - -debug=alert
+            - -debug=db
+            - -debug=proxy
+            - -debug=prune
+            - -debug=reindex
+            - -txindex
+            - -rpcallowip=10.0.0.0/8
+            - -rpcbind=0.0.0.0
+            - -rpcauth=thorchain:d7e53bb9757b6d4fabf87775c7824b5c$7097e9cde30ef4319ed708fc559267679ae6cc0bf7e18fd49b283650c0c26a10
+          {{- end }}
+          volumeMounts:
+            - name: data
+              mountPath: /home/dogecoin/.dogecoin
+          env:
+            - name: NET
+              value: {{ include "dogecoin-daemon.net" . }}
+          ports:
+            - name: p2p
+              containerPort: {{ include "dogecoin-daemon.p2p" . }}
+              protocol: TCP
+            - name: rpc
+              containerPort: {{ include "dogecoin-daemon.rpc" . }}
+              protocol: TCP
+          startupProbe:
+            failureThreshold: 60
+            timeoutSeconds: 5
+            periodSeconds: 10
+            exec:
+              command: ["/scripts/ping.sh"]
+          livenessProbe:
+            exec:
+              command: ["/scripts/ping.sh"]
+          readinessProbe:
+            exec:
+              command: ["/scripts/ping.sh"]
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+      volumes:
+      - name: data
+      {{- if and .Values.persistence.enabled (not .Values.persistence.hostPath) }}
+        persistentVolumeClaim:
+          claimName: {{ if .Values.persistence.existingClaim }}{{ .Values.persistence.existingClaim }}{{- else }}{{ template "dogecoin-daemon.fullname" . }}{{- end }}
+      {{- else if and .Values.persistence.enabled .Values.persistence.hostPath }}
+        hostPath:
+          path: {{ .Values.persistence.hostPath }}
+          type: DirectoryOrCreate
+      {{- else }}
+        emptyDir: {}
+      {{- end }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

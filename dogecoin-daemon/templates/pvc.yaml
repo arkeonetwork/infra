@@ -1,0 +1,27 @@
+{{- if and .Values.persistence.enabled (not .Values.persistence.existingClaim) (not .Values.persistence.hostPath) }}
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: {{ template "dogecoin-daemon.fullname" . }}
+  labels:
+    {{- include "dogecoin-daemon.labels" . | nindent 4 }}
+spec:
+  accessModes:
+    - {{ .Values.persistence.accessMode | quote }}
+  resources:
+    requests:
+      {{- if eq (include "dogecoin-daemon.net" .) "mainnet" }}
+      storage: {{ .Values.persistence.size.mainnet | quote }}
+      {{- else if eq (include "dogecoin-daemon.net" .) "stagenet" }}
+      storage: {{ .Values.persistence.size.stagenet | quote }}
+      {{- else }}
+      storage: {{ .Values.persistence.size.testnet | quote }}
+      {{- end }}
+{{- if .Values.persistence.storageClass }}
+{{- if (eq "-" .Values.persistence.storageClass) }}
+  storageClassName: ""
+{{- else }}
+  storageClassName: "{{ .Values.persistence.storageClass }}"
+{{- end }}
+{{- end }}
+{{- end -}}

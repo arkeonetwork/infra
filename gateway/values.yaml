@@ -5,11 +5,10 @@
 net: mainnet
 
 validator: true
-midgard: false
 rpc:
   enabled: true
   limited: true
-api: false
+api: true
 
 # whitelistIPs contains a list of allowed IP addresses or CIDRs. Defaults to allow all
 # traffic if not provided.

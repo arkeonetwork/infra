@@ -6,7 +6,6 @@ get_node_info
 
 if node_exists; then
   warn "Found an existing Arkeo Node, make sure this is the node you want to update"
-  display_status
   echo
 fi
 

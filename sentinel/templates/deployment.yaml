@@ -81,7 +81,6 @@ spec:
                 configMapKeyRef:
                   name: {{ include "sentinel.fullname" . }}-external-ip
                   key: externalIP
-            # VALIDATOR is used by /scripts/node-status.sh to enable chain sync checks.
             - name: VALIDATOR
               value: "true"
             - name: NET
@@ -94,8 +93,10 @@ spec:
               value: {{ .Values.description }}
             - name: LOCATION
               value: {{ .Values.location }}
-            - name: PROXY_HOST
-              value: {{ .Values.proxyHost }}
+            - name: PROVIDER_PUBKEY
+              value: {{ .Values.pubkey }}
+            - name: PUBKEY
+              value: {{ .Values.pubkey }}
             - name: CLAIM_STORE_LOCATION
               value: {{ .Values.claimStoreLocation }}
             - name: SOURCE_CHAIN
@@ -104,16 +105,6 @@ spec:
               value: {{ include "sentinel.arkeoDaemon" . }}
             - name: FREE_RATE_LIMIT
               value: "{{ .Values.freeRate.limit }}"
-            - name: FREE_RATE_LIMIT_DURATION
-              value: {{ .Values.freeRate.duration }}
-            - name: SUB_RATE_LIMIT
-              value: "{{ .Values.subRate.limit }}"
-            - name: SUB_RATE_LIMIT_DURATION
-              value: {{ .Values.subRate.duration }}
-            - name: AS_GO_RATE_LIMIT
-              value: "{{ .Values.asGoRate.limit }}"
-            - name: AS_GO_RATE_LIMIT_DURATION
-              value: {{ .Values.asGoRate.duration }}
             - name: PEER
               value: {{ default .Values.peer .Values.global.peer }}
             - name: SIGNER_NAME

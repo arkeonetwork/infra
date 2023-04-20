@@ -5,16 +5,10 @@
 net: mainnet
 
 validator: true
-midgard: false
 rpc:
   enabled: true
-<<<<<<< Updated upstream
-  limited: true
-api: false
-=======
   limited: false
 api: true
->>>>>>> Stashed changes
 
 # whitelistIPs contains a list of allowed IP addresses or CIDRs. Defaults to allow all
 # traffic if not provided.

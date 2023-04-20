@@ -2,7 +2,7 @@
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
 
-net: testnet
+net: mainnet
 type: validator
 
 autoupdate:

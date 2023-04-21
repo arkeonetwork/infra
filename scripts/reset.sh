@@ -4,7 +4,7 @@ source ./scripts/core.sh
 
 get_node_info_short
 echo "=> Select a Arkeo Node service to reset"
-menu midgard midgard binance-daemon arkeo gaia-daemon ethereum-daemon-execution ethereum-daemon-beacon avalanche-daemon
+menu arkeo bitcoin-daemon litecoin-daemon binance-daemon gaia-daemon ethereum-daemon-execution ethereum-daemon-beacon avalanche-daemon
 SERVICE=$MENU_SELECTED
 
 if node_exists; then
@@ -20,14 +20,6 @@ warn "Destructive command, be careful, your service data volume data will be wip
 confirm
 
 case $SERVICE in
-  midgard)
-    kubectl scale -n "$NAME" --replicas=0 sts/midgard-timescaledb --timeout=5m
-    kubectl wait --for=delete pods midgard-timescaledb-0 -n "$NAME" --timeout=5m >/dev/null 2>&1 || true
-    kubectl run -n "$NAME" -it reset-midgard --rm --restart=Never --image=busybox --overrides='{"apiVersion": "v1", "spec": {"containers": [{"command": ["rm", "-rf", "/var/lib/postgresql/data/pgdata"], "name": "reset-midgard", "stdin": true, "stdinOnce": true, "tty": true, "image": "busybox", "volumeMounts": [{"mountPath": "/var/lib/postgresql/data", "name":"data"}]}], "volumes": [{"name": "data", "persistentVolumeClaim": {"claimName": "data-midgard-timescaledb-0"}}]}}'
-    kubectl scale -n "$NAME" --replicas=1 sts/midgard-timescaledb --timeout=5m
-    kubectl delete -n "$NAME" pod -l app.kubernetes.io/name=midgard
-    ;;
-
   arkeo)
     kubectl scale -n "$NAME" --replicas=0 deploy/arkeo --timeout=5m
     kubectl wait --for=delete pods -l app.kubernetes.io/name=arkeo -n "$NAME" --timeout=5m >/dev/null 2>&1 || true
@@ -68,5 +60,19 @@ case $SERVICE in
     kubectl wait --for=delete pods -l app.kubernetes.io/name=avalanche-daemon -n "$NAME" --timeout=5m >/dev/null 2>&1 || true
     kubectl run -n "$NAME" -it reset-avalanche --rm --restart=Never --image=busybox --overrides='{"apiVersion": "v1", "spec": {"containers": [{"command": ["sh", "-c", "rm -rf /root/.avalanchego/db"], "name": "reset-avalanche", "stdin": true, "stdinOnce": true, "tty": true, "image": "busybox", "volumeMounts": [{"mountPath": "/root/.avalanchego", "name":"data"}]}], "volumes": [{"name": "data", "persistentVolumeClaim": {"claimName": "avalanche-daemon"}}]}}'
     kubectl scale -n "$NAME" --replicas=1 deploy/avalanche-daemon --timeout=5m
+    ;;
+
+  bitcoin-daemon)
+    kubectl scale -n "$NAME" --replicas=0 deploy/bitcoin-daemon --timeout=5m
+    kubectl wait --for=delete pods -l app.kubernetes.io/name=bitcoin-daemon -n "$NAME" --timeout=5m >/dev/null 2>&1 || true
+    kubectl run -n "$NAME" -it reset-bitcoin --rm --restart=Never --image=busybox --overrides='{"apiVersion": "v1", "spec": {"containers": [{"command": ["sh", "-c", "rm -rf /home/bitcoin/.bitcoin/*"], "name": "reset-bitcoin", "stdin": true, "stdinOnce": true, "tty": true, "image": "busybox", "volumeMounts": [{"mountPath": "/home/bitcoin/.bitcoin", "name":"data"}]}], "volumes": [{"name": "data", "persistentVolumeClaim": {"claimName": "bitcoin-daemon"}}]}}'
+    kubectl scale -n "$NAME" --replicas=1 deploy/bitcoin-daemon --timeout=5m
+    ;;
+
+  litecoin-daemon)
+    kubectl scale -n "$NAME" --replicas=0 deploy/litecoin-daemon --timeout=5m
+    kubectl wait --for=delete pods -l app.kubernetes.io/name=litecoin-daemon -n "$NAME" --timeout=5m >/dev/null 2>&1 || true
+    kubectl run -n "$NAME" -it reset-litecoin --rm --restart=Never --image=busybox --overrides='{"apiVersion": "v1", "spec": {"containers": [{"command": ["sh", "-c", "rm -rf /home/litecoin/.litecoin/*"], "name": "reset-litecoin", "stdin": true, "stdinOnce": true, "tty": true, "image": "busybox", "volumeMounts": [{"mountPath": "/home/litecoin/.litecoin", "name":"data"}]}], "volumes": [{"name": "data", "persistentVolumeClaim": {"claimName": "litecoin-daemon"}}]}}'
+    kubectl scale -n "$NAME" --replicas=1 deploy/litecoin-daemon --timeout=5m
     ;;
 esac

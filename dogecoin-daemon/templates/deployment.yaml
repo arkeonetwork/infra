@@ -44,7 +44,7 @@ spec:
             - -txindex
             - -rpcallowip=10.0.0.0/8
             - -rpcbind=0.0.0.0
-            - -rpcauth=thorchain:d7e53bb9757b6d4fabf87775c7824b5c$7097e9cde30ef4319ed708fc559267679ae6cc0bf7e18fd49b283650c0c26a10
+            - -rpcauth=infra:d7e53bb9757b6d4fabf87775c7824b5c$7097e9cde30ef4319ed708fc559267679ae6cc0bf7e18fd49b283650c0c26a10
           {{- else }} # mainnet / stagenet
           args:
             - -printtoconsole
@@ -56,7 +56,7 @@ spec:
             - -txindex
             - -rpcallowip=10.0.0.0/8
             - -rpcbind=0.0.0.0
-            - -rpcauth=thorchain:d7e53bb9757b6d4fabf87775c7824b5c$7097e9cde30ef4319ed708fc559267679ae6cc0bf7e18fd49b283650c0c26a10
+            - -rpcauth=infra:d7e53bb9757b6d4fabf87775c7824b5c$7097e9cde30ef4319ed708fc559267679ae6cc0bf7e18fd49b283650c0c26a10
           {{- end }}
           volumeMounts:
             - name: data
@@ -76,13 +76,40 @@ spec:
             timeoutSeconds: 5
             periodSeconds: 10
             exec:
-              command: ["/scripts/ping.sh"]
+              command:
+                - dogecoin-cli
+                - -rpcuser=infra
+                - -rpcpassword=password
+              {{- if eq (include "dogecoin-daemon.net" .) "mocknet" }}
+                - -regtest
+              {{- else if eq (include "dogecoin-daemon.net" .) "testnet" }}
+                - -testnet
+              {{- end }}
+                - ping
           livenessProbe:
             exec:
-              command: ["/scripts/ping.sh"]
+              command:
+                - dogecoin-cli
+                - -rpcuser=infra
+                - -rpcpassword=password
+              {{- if eq (include "dogecoin-daemon.net" .) "mocknet" }}
+                - -regtest
+              {{- else if eq (include "dogecoin-daemon.net" .) "testnet" }}
+                - -testnet
+              {{- end }}
+                - ping
           readinessProbe:
             exec:
-              command: ["/scripts/ping.sh"]
+              command:
+                - dogecoin-cli
+                - -rpcuser=infra
+                - -rpcpassword=password
+              {{- if eq (include "dogecoin-daemon.net" .) "mocknet" }}
+                - -regtest
+              {{- else if eq (include "dogecoin-daemon.net" .) "testnet" }}
+                - -testnet
+              {{- end }}
+                - ping
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
       volumes:

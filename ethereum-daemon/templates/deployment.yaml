@@ -14,6 +14,7 @@ spec:
   template:
     metadata:
       labels:
+        network-policy: external-egress-only
         {{- include "ethereum-daemon.selectorLabels" . | nindent 8 }}
     spec:
     {{- with .Values.imagePullSecrets }}
@@ -84,6 +85,13 @@ spec:
             - name: rpc
               containerPort: {{ .Values.service.port }}
               protocol: TCP
+          lifecycle:
+            preStop:
+              exec:
+                command:
+                  - sh
+                  - -c
+                  - "killall5 2 && sleep 120" # SIGINT and give 120s for main process to terminate
           startupProbe:
             failureThreshold: 600
             periodSeconds: 10

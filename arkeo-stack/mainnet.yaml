@@ -38,3 +38,6 @@ gaia-daemon:
 
 avalanche-daemon:
   enabled: false
+
+binance-smart-daemon:
+  enabled: false

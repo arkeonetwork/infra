@@ -57,3 +57,6 @@ gaia-daemon:
 avalanche-daemon:
   enabled: false
   fullnameOverride: avalanche-daemon
+
+binance-smart-daemon:
+  fullnameOverride: binance-smart-daemon

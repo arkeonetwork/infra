@@ -4,4 +4,4 @@ description: Avalanche Daemon component
 type: application
 version: 0.1.0
 
-appVersion: v1.9.1
+appVersion: v1.9.16

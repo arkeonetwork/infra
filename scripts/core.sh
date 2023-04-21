@@ -34,7 +34,7 @@ die() {
 }
 
 confirm() {
-  if [ -z "$TC_NO_CONFIRM" ]; then
+  if [ -z "$NO_CONFIRM" ]; then
     echo -n "$boldyellow:: Are you sure? Confirm [y/n]: $reset" && read -r ans && [ "${ans:-N}" != y ] && exit
   fi
   echo
@@ -174,7 +174,7 @@ make_snapshot() {
 
   echo
   echo "=> Snapshotting service $boldgreen$service$reset of a Arkeo Node named $boldgreen$NAME$reset"
-  if [ -z "$TC_NO_CONFIRM" ]; then
+  if [ -z "$NO_CONFIRM" ]; then
     echo -n "$boldyellow:: Are you sure? Confirm [y/n]: $reset" && read -r ans && [ "${ans:-N}" != y ] && return
   fi
   echo
@@ -283,7 +283,7 @@ display_status() {
       fi
 
       # prompt for sentinel keyshare backup
-      if [ "$TC_BACKUP" = "true" ]; then
+      if [ "$BACKUP" = "true" ]; then
         make_backup sentinel
       fi
     fi

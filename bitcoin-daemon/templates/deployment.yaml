@@ -64,13 +64,40 @@ spec:
             timeoutSeconds: 5
             periodSeconds: 10
             exec:
-              command: ["/scripts/ping.sh"]
+              command:
+                - bitcoin-cli
+                - -rpcuser=infra
+                - -rpcpassword=password
+              {{- if eq (include "bitcoin-daemon.net" .) "mocknet" }}
+                - -regtest
+              {{- else if eq (include "bitcoin-daemon.net" .) "testnet" }}
+                - -testnet
+              {{- end }}
+                - ping
           livenessProbe:
             exec:
-              command: ["/scripts/ping.sh"]
+              command:
+                - bitcoin-cli
+                - -rpcuser=infra
+                - -rpcpassword=password
+              {{- if eq (include "bitcoin-daemon.net" .) "mocknet" }}
+                - -regtest
+              {{- else if eq (include "bitcoin-daemon.net" .) "testnet" }}
+                - -testnet
+              {{- end }}
+                - ping
           readinessProbe:
             exec:
-              command: ["/scripts/ping.sh"]
+              command:
+                - bitcoin-cli
+                - -rpcuser=infra
+                - -rpcpassword=password
+              {{- if eq (include "bitcoin-daemon.net" .) "mocknet" }}
+                - -regtest
+              {{- else if eq (include "bitcoin-daemon.net" .) "testnet" }}
+                - -testnet
+              {{- end }}
+                - ping
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
       volumes:

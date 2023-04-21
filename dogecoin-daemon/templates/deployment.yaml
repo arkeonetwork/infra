@@ -76,13 +76,40 @@ spec:
             timeoutSeconds: 5
             periodSeconds: 10
             exec:
-              command: ["/scripts/ping.sh"]
+              command:
+                - dogecoin-cli
+                - -rpcuser=infra
+                - -rpcpassword=password
+              {{- if eq (include "dogecoin-daemon.net" .) "mocknet" }}
+                - -regtest
+              {{- else if eq (include "dogecoin-daemon.net" .) "testnet" }}
+                - -testnet
+              {{- end }}
+                - ping
           livenessProbe:
             exec:
-              command: ["/scripts/ping.sh"]
+              command:
+                - dogecoin-cli
+                - -rpcuser=infra
+                - -rpcpassword=password
+              {{- if eq (include "dogecoin-daemon.net" .) "mocknet" }}
+                - -regtest
+              {{- else if eq (include "dogecoin-daemon.net" .) "testnet" }}
+                - -testnet
+              {{- end }}
+                - ping
           readinessProbe:
             exec:
-              command: ["/scripts/ping.sh"]
+              command:
+                - dogecoin-cli
+                - -rpcuser=infra
+                - -rpcpassword=password
+              {{- if eq (include "dogecoin-daemon.net" .) "mocknet" }}
+                - -regtest
+              {{- else if eq (include "dogecoin-daemon.net" .) "testnet" }}
+                - -testnet
+              {{- end }}
+                - ping
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
       volumes:

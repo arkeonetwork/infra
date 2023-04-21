@@ -8,6 +8,6 @@ elif [ "$NET" = "testnet" ]; then
   EXTRA_ARGS="-testnet"
 fi
 
-dogecoin-cli -rpcuser=thorchain \
+dogecoin-cli -rpcuser=infra \
             -rpcpassword=password \
             $EXTRA_ARGS ping

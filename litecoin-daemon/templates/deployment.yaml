@@ -38,13 +38,13 @@ spec:
             - -txindex
             - -rpcallowip=10.0.0.0/8
             - -rpcbind=0.0.0.0
-            - -rpcauth=thorchain:d7e53bb9757b6d4fabf87775c7824b5c$7097e9cde30ef4319ed708fc559267679ae6cc0bf7e18fd49b283650c0c26a10
+            - -rpcauth=infra:d7e53bb9757b6d4fabf87775c7824b5c$7097e9cde30ef4319ed708fc559267679ae6cc0bf7e18fd49b283650c0c26a10
           {{- else }} # mainnet / stagenet
           args:
             - -txindex
             - -rpcallowip=10.0.0.0/8
             - -rpcbind=0.0.0.0
-            - -rpcauth=thorchain:d7e53bb9757b6d4fabf87775c7824b5c$7097e9cde30ef4319ed708fc559267679ae6cc0bf7e18fd49b283650c0c26a10
+            - -rpcauth=infra:d7e53bb9757b6d4fabf87775c7824b5c$7097e9cde30ef4319ed708fc559267679ae6cc0bf7e18fd49b283650c0c26a10
           {{- end }}
           volumeMounts:
             - name: data
@@ -63,7 +63,7 @@ spec:
             exec:
               command:
                 - litecoin-cli
-                - -rpcuser=thorchain
+                - -rpcuser=infra
                 - -rpcpassword=password
               {{- if eq (include "litecoin-daemon.net" .) "mocknet" }}
                 - -regtest
@@ -75,7 +75,7 @@ spec:
             exec:
               command:
                 - litecoin-cli
-                - -rpcuser=thorchain
+                - -rpcuser=infra
                 - -rpcpassword=password
               {{- if eq (include "litecoin-daemon.net" .) "mocknet" }}
                 - -regtest
@@ -87,7 +87,7 @@ spec:
             exec:
               command:
                 - litecoin-cli
-                - -rpcuser=thorchain
+                - -rpcuser=infra
                 - -rpcpassword=password
               {{- if eq (include "litecoin-daemon.net" .) "mocknet" }}
                 - -regtest

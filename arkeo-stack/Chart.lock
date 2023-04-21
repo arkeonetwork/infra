@@ -38,5 +38,5 @@ dependencies:
 - name: binance-smart-daemon
   repository: file://../binance-smart-daemon
   version: 0.1.0
-digest: sha256:d65e1b10f1809df72195ae8f41dbf849e66fad9228139b6bad78acebe53067bd
-generated: "2023-02-10T10:06:35.835068108-05:00"
+digest: sha256:a560fe865d3a439122a63efaf2ede0f99e006f1c33e82201eba04c6fd02180cb
+generated: "2023-04-21T00:57:16.693953131-04:00"

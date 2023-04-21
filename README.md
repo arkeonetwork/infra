@@ -80,11 +80,10 @@ make help
 
 # status
 
-To get information about your node on how to connect to services or its IP, run the command below.
-You will also get your node address and the vault address where you will need to send your bond.
+TODO
 
 ```bash
-make status
+make status # non-functional yet
 ```
 
 # shell
@@ -299,30 +298,4 @@ The image used for CI of this repository is found in [ci/](./ci/).
 The node daemon images used in the charts here are built from [ci/images/](./ci/images).
 
 ## Troubleshooting
-
-1. Patch failed on forbidden field during `make install` or `make update`.
-
-```
-Error: UPGRADE FAILED: cannot patch "midgard-timescaledb" with kind StatefulSet: StatefulSet.apps "midgard-timescaledb" is invalid: spec: Forbidden: updates to statefulset spec for fields other than 'replicas', 'template', and 'updateStrategy' are forbidden
-```
-
-This is caused when the chart contains a change on a field that cannot be patched. Typically this occurs on volume size changes for the PVC template in a StatefulSet. In order to proceed you must simply delete the existing StatefulSet before re-running `make install` or `make update` - adding `--cascade=orphan` if you do not wish to disrupt the currently running pods:
-
-```bash
-kubectl -n <name> delete statefulsets.apps midgard-timescaledb --cascade=orphan
-```
-
-In most cases the change comes from a default that was updated for good reason and this change should be applied to the existing PVC. If your Kubernetes infrastructure supports resizeable volumes, you can simply edit the existing PVC to the updated size from the original diff output - for example:
-
-```bash
-kubectl -n <name> get pvc                              # show current
-kubectl -n <name> edit pvc data-midgard-timescaledb-0  # edit spec.resources.requests.storage with the new value
-```
-
-If your Kubernetes infrastructure does not support resizeable volumes, after installing or updating you can recreate it by scaling down, deleting the PVC, then scaling back up - for example:
-
-```bash
-kubectl -n <name> scale statefulset midgard-timescaledb --replicas 0
-kubectl -n <name> delete pvc data-midgard-timescaledb-0
-kubectl -n <name> scale statefulset midgard-timescaledb --replicas 1
-```
+TODO

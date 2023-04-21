@@ -1,6 +1,6 @@
 #!/bin/sh
 
-SIGNER_NAME="${SIGNER_NAME:=thorchain}"
+SIGNER_NAME="${SIGNER_NAME:=infra}"
 SIGNER_PASSWD="${SIGNER_PASSWD:=password}"
 MASTER_ADDR="${BTC_MASTER_ADDR:=rltc1qj08ys4ct2hzzc2hcz6h2hgrvlmsjynawf4nr3r}"
 BLOCK_TIME=${BLOCK_TIME:=1}

@@ -28,13 +28,13 @@ bitcoin-cash-daemon:
   enabled: false
 
 ethereum-daemon:
-  enabled: false
+  enabled: true
 
 dogecoin-daemon:
   enabled: false
 
 gaia-daemon:
-  enabled: false
+  enabled: true
 
 avalanche-daemon:
   enabled: false

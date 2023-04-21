@@ -118,6 +118,20 @@ To fully destroy the running node and all services, run that command:
 make destroy
 ```
 
+## Enable/Disable Daemons
+
+You can choose which daemons/services you want to run and which you do not. To
+do so, etc. To do so, edit the following file
+
+```bash
+vim arkeo-stack/mainnet.yaml
+```
+
+Once you have done that, run the following for your changes to take effect.
+```bash
+make install
+```
+
 ## Deploy metrics management Prometheus / Grafana stack
 
 It is recommended to deploy a Prometheus stack to monitor your cluster

@@ -1,0 +1,7 @@
+apiVersion: v2
+name: binance-smart-daemon
+description: Binance Smart Daemon Component
+type: application
+version: 0.1.0
+
+appVersion: v1.1.22

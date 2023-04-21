@@ -10,11 +10,11 @@ image:
   eth:
     name: ethereum/client-go
     tag: "" # When tag is empty it defaults to the chart appVersion.
-    hash: 03604c12f6123fda67f534c9a68a73dbabd35d5c0a13f0c6cfcf735cfd8760c8
+    hash: e9f59ac431b1ab05458880fec0e4b8cadf917eabe48eba2363c1f152ee92ec99
   prysm:
     name: gcr.io/prysmaticlabs/prysm/beacon-chain
-    tag: v3.1.2
-    hash: 140aa344814fee97a5ef9ee873e69f4c851972b388588f74ea7d26b4842dc9c3
+    tag: v4.0.2
+    hash: 37ff590b82dba14e813b30f1f1e747d23e8d8e221bda9a671e4d88b3db525d76
   scripts:
     repository: registry.gitlab.com/thorchain/thornode
     pullPolicy: IfNotPresent
@@ -68,7 +68,7 @@ persistence:
   size:
     testnet: 300Gi
     stagenet: 900Gi
-    mainnet: 1228Gi
+    mainnet: 1792Gi
   accessMode: ReadWriteOnce
   # storageClass: "-"
   #

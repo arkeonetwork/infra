@@ -1,0 +1,69 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "binance-smart-daemon.fullname" . }}-scripts
+data:
+  init.sh: |
+    #!/bin/sh
+
+    set -euo pipefail
+
+    # work in data mount
+    cd /data
+
+    # clenaup snapshot and exit if already started
+    if [ -d geth/chaindata ]; then
+      rm -f *.lz4
+      rm -rf server
+      exit 0
+    fi
+
+    # install dependencies
+    apk add aria2 curl jq lz4
+
+    # get latest snapshot
+    LATEST=$(
+      curl -sL --fail -m 20 https://download.bsc-snapshot.workers.dev/ |
+      jq -r '[.objects[]|select(.key|test("geth-[0-9]+\\.tar\\.lz4$"))]|sort_by(.key)[-1]|.key'
+    )
+    echo "Pulling snapshot: $LATEST"
+
+    # download snapshot
+    aria2c -c -o $LATEST -s14 -x14 -k100M "https://download.bsc-snapshot.workers.dev/$LATEST"
+
+    # decompress snapshot
+    echo "Decompressing $LATEST.tar.lz4..."
+    lz4 -d $LATEST | tar xf -
+
+    # move data into place
+    mkdir -p geth
+    mv server/data-seed/geth/chaindata geth/chaindata
+    mv server/data-seed/geth/triecache geth/triecache
+    chown -R 1000:1000 geth
+
+  probe.sh: |
+    #!/bin/sh
+
+    FILE=/home/bsc/.probe_last_height
+
+    SYNCING=$(geth attach --exec eth.syncing --datadir=data) || exit 1
+    HEIGHT=$(geth attach --exec eth.blockNumber --datadir=data) || exit 1
+
+    # first time we are syncing from scratch
+    if [ "$HEIGHT" = "0" ]; then
+      exit 0
+    fi
+
+    if [ ! -f "$FILE" ]; then
+      echo "$HEIGHT" >$FILE
+      echo "Not getting new blocks"
+      exit 1
+    fi
+
+    OLD=$(cat $FILE)
+    echo "$HEIGHT" >$FILE
+    if [ "$OLD" = "$HEIGHT" ]; then
+      echo "Not getting new blocks"
+      exit 1
+    fi
+    exit 0

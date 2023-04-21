@@ -1,0 +1,116 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "binance-smart-daemon.fullname" . }}
+  labels:
+    {{- include "binance-smart-daemon.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      {{- include "binance-smart-daemon.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        network-policy: external-egress-only
+        {{- include "binance-smart-daemon.selectorLabels" . | nindent 8 }}
+    spec:
+    {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
+
+      serviceAccountName: {{ include "binance-smart-daemon.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+
+      initContainers:
+        - name: init
+          image: alpine:{{ .Values.global.images.alpine.tag }}@sha256:{{ .Values.global.images.alpine.hash }}
+          volumeMounts:
+            - name: data
+              mountPath: /data
+            - name: scripts
+              mountPath: /scripts
+          command:
+            - /scripts/init.sh
+      containers:
+        - name: {{ .Chart.Name }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          image: {{ .Values.image.name }}:{{ include "daemon.tag" . }}@sha256:{{ .Values.image.hash }}
+          imagePullPolicy: IfNotPresent
+          command:
+            - sh
+            - -c
+            - geth --http --http.addr 0.0.0.0 --http.port {{ .Values.service.port }} --http.api "eth,net,engine,web3,miner,personal,txpool,debug" --http.corsdomain "*" --http.vhosts="*" --config=config/config.toml --datadir=data
+          volumeMounts:
+            - name: scripts
+              mountPath: /scripts
+            - name: data
+              mountPath: /home/bsc/data
+          ports:
+            - name: rpc
+              containerPort: {{ .Values.service.port }}
+              protocol: TCP
+          lifecycle:
+            preStop:
+              exec:
+                command:
+                  - sh
+                  - -c
+                  - "killall5 2 && sleep 30" # SIGINT and give 30s for main process to terminate
+          startupProbe:
+            failureThreshold: 600
+            periodSeconds: 10
+            timeoutSeconds: 10
+            exec:
+              command:
+                - /scripts/probe.sh
+          livenessProbe:
+            failureThreshold: 60
+            timeoutSeconds: 10
+            periodSeconds: 10
+            exec:
+              command:
+                - /scripts/probe.sh
+          readinessProbe:
+            timeoutSeconds: 10
+            exec:
+              command:
+                - test
+                - $(geth attach --exec=net.listening --datadir=data) == "true"
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+
+      volumes:
+        - name: data
+        {{- if and .Values.persistence.enabled (not .Values.persistence.hostPath) }}
+          persistentVolumeClaim:
+            claimName: {{ if .Values.persistence.existingClaim }}{{ .Values.persistence.existingClaim }}{{- else }}{{ template "binance-smart-daemon.fullname" . }}{{- end }}
+        {{- else if and .Values.persistence.enabled .Values.persistence.hostPath }}
+          hostPath:
+            path: {{ .Values.persistence.hostPath }}
+            type: DirectoryOrCreate
+        {{- else }}
+          emptyDir: {}
+        {{- end }}
+        - name: scripts
+          configMap:
+            name: {{ include "binance-smart-daemon.fullname" . }}-scripts
+            defaultMode: 0777
+
+    {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
+    {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
+    {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}

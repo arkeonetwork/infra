@@ -1,28 +1,19 @@
-# Default values for litecoin-daemon.
+# Default values for binance-smart-daemon.
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
 
-replicaCount: 1
-
 net: mainnet
+
+replicaCount: 1
 
 image:
   name: registry.gitlab.com/thorchain/devops/node-launcher
-  tag: "litecoin-daemon-0.21.2.2"
-  hash: "a9eacb8aa9359d342e660c8f697d40b1b4ba13cd055dfb186590aa9e0c0efcea"
+  tag: "binance-smart-daemon-1.1.22"
+  hash: "283cfa867083c28a09688d3d07a23d3312d03fa0ebf11f3a2bde7802d2492f85"
 
 imagePullSecrets: []
 nameOverride: ""
 fullnameOverride: ""
-
-persistence:
-  enabled: true
-  size:
-    testnet: 50Gi
-    stagenet: 150Gi
-    mainnet: 150Gi
-  accessMode: ReadWriteOnce
-  # storageClass: "-"
 
 serviceAccount:
   # Specifies whether a service account should be created
@@ -31,10 +22,11 @@ serviceAccount:
   # If not set and create is true, a name is generated using the fullname template
   name:
 
-podSecurityContext: {}
-  # fsGroup: 2000
+podSecurityContext:
+  fsGroup: 1000
 
-securityContext: {}
+securityContext:
+  fsGroup: 1000
   # capabilities:
   #   drop:
   #   - ALL
@@ -44,19 +36,7 @@ securityContext: {}
 
 service:
   type: ClusterIP
-  port:
-    mainnet:
-      p2p: 9333
-      rpc: 9332
-    stagenet:
-      p2p: 9333
-      rpc: 9332
-    testnet:
-      p2p: 19333
-      rpc: 19332
-    regtest:
-      p2p: 19444
-      rpc: 19443
+  port: 8545
 
 ingress:
   enabled: false
@@ -75,13 +55,20 @@ ingress:
     #   hosts:
     #     - midgard.example.com
 
+persistence:
+  enabled: true
+  size: 4Ti
+  accessMode: ReadWriteOnce
+  # storageClass: "-"
+  #
+  #
 resources:
   limits:
-    # cpu: 1
-    memory: 5Gi
+    # cpu: 12
+    # memory: 64Gi
   requests:
-    cpu: 1
-    memory: 5Gi
+    cpu: 6
+    memory: 48Gi
 
 nodeSelector: {}
 
@@ -89,4 +76,9 @@ tolerations: []
 
 affinity: {}
 
-global: {}
+# necessary for lint
+global:
+  images:
+    alpine:
+      tag: foo
+      hash: bar

@@ -66,3 +66,8 @@ dependencies:
     repository: file://../avalanche-daemon
     version: 0.1.0
     condition: avalanche-daemon.enabled
+
+  - name: binance-smart-daemon
+    repository: file://../binance-smart-daemon
+    version: 0.1.0
+    condition: binance-smart-daemon.enabled

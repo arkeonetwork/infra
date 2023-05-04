@@ -132,6 +132,27 @@ Once you have done that, run the following for your changes to take effect.
 make install
 ```
 
+## Configure Sentinel
+Sentinel is configured via environment variables. You can assign those
+environment variable by editing `sentinel/values.yaml`. 
+
+If you want to configure those environment variables manually, they are as
+follows...
+
+```
+MONIKER
+WEBSITE
+DESCRIPTION
+LOCATION
+PROVIDER_PUBKEY
+PORT
+SOURCE_CHAIN
+CLAIM_STORE_LOCATION
+CONTRACT_CONFIG_STORE_LOCATION
+EVENT_STREAM_HOST
+FREE_RATE_LIMIT
+```
+
 ## Deploy metrics management Prometheus / Grafana stack
 
 It is recommended to deploy a Prometheus stack to monitor your cluster

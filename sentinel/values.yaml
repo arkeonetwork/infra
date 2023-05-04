@@ -11,6 +11,7 @@ pubkey: <INSERT>
 freeRate:
   limit: 10
 claimStoreLocation: "${HOME}/.arkeo/claims"
+contractConfigStoreLocation: "${HOME}/.arkeo/contract_configs"
 
 signer:
   name: arkeo

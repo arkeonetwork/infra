@@ -99,6 +99,8 @@ spec:
               value: {{ .Values.pubkey }}
             - name: CLAIM_STORE_LOCATION
               value: {{ .Values.claimStoreLocation }}
+            - name: CONTRACT_CONFIG_STORE_LOCATION
+              value: {{ .Values.contractConfigStoreLocation }}
             - name: SOURCE_CHAIN
               value: "http://{{ .Values.arkeoApi }}"
             - name: EVENT_STREAM_HOST

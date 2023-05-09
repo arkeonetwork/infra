@@ -68,7 +68,7 @@ persistence:
   size:
     testnet: 300Gi
     stagenet: 900Gi
-    mainnet: 1792Gi
+    mainnet: 1228Gi
   accessMode: ReadWriteOnce
   # storageClass: "-"
   #

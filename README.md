@@ -16,7 +16,7 @@ Once you have your Arkeo Node up and running, please follow instructions [here](
 
 ## Running Kubernetes cluster
 
-To get a Kubernetes cluster running, you can use the Terraform scripts [here](https://github.com/ArkeoNetwork/infra).
+To get a Kubernetes cluster running, you can use the Terraform scripts [here](https://gitlab.com/thorchain/devops/cluster-launcher).
 
 ## Install Helm 3
 

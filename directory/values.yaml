@@ -20,7 +20,7 @@ image:
   pullPolicy: IfNotPresent
 
 postgres:
-  host: postgresql
+  host: test-postgresql
   name: arkeo
   user: arkeo
   password: password
@@ -30,21 +30,24 @@ postgres:
   sslMode: prefer
 
 postgresql:
-  postgresqlDatabase: arkeo
-  postgresqlUsername: arkeo
-  postgresqlPassword: password
+  global:
+    postgresql:
+      auth:
+        username: arkeo
+        password: password
+        database: arkeo
 
 service1:
   name: directory-api
   port: 7777
-  command: api
+  command: directory-api
   additionalEnv:
     API_LISTEN: "0.0.0.0:7777"
     API_STATIC_DIR: "/var/www/html"
 
 service2:
   name: directory-indexer
-  command: indexer
+  command: directory-indexer
   additionalEnv:
     CHAIN_ID: "arkeo"
     BECH32_PREF_ACC_ADDR: "arkeo"

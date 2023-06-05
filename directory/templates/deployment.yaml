@@ -28,7 +28,7 @@ spec:
           value: "{{ .Values.postgres.name }}"
         - name: DB_USER
           value: "{{ .Values.postgres.user }}"
-        - name: DB_PASSWORD
+        - name: DB_PASS
           value: "{{ .Values.postgres.password }}"
         - name: DB_POOL_MAX_CONNS
           value: "{{ .Values.postgres.poolMaxConns }}"
@@ -70,7 +70,7 @@ spec:
           value: "{{ .Values.postgres.name }}"
         - name: DB_USER
           value: "{{ .Values.postgres.user }}"
-        - name: DB_PASSWORD
+        - name: DB_PASS
           value: "{{ .Values.postgres.password }}"
         - name: DB_POOL_MAX_CONNS
           value: "{{ .Values.postgres.poolMaxConns }}"

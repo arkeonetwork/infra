@@ -8,6 +8,9 @@ arkeo:
     auto: false
     snapshotInterval: 0
 
+directory:
+  enabled: false
+
 midgard:
   enabled: false
   blockstore:

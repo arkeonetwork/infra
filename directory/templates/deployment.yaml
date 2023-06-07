@@ -1,0 +1,84 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.service1.name }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ .Values.service1.name }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.service1.name }}
+    spec:
+      containers:
+      - name: {{ .Values.service1.name }}
+        image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+        command: ["{{ .Values.service1.command }}"]
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        ports:
+        - containerPort: {{ .Values.service1.port }}
+        env:
+        - name: DB_HOST
+          value: "{{ .Values.postgres.host }}"
+        - name: DB_PORT
+          value: "{{ .Values.postgres.port }}"
+        - name: DB_NAME
+          value: "{{ .Values.postgres.name }}"
+        - name: DB_USER
+          value: "{{ .Values.postgres.user }}"
+        - name: DB_PASS
+          value: "{{ .Values.postgres.password }}"
+        - name: DB_POOL_MAX_CONNS
+          value: "{{ .Values.postgres.poolMaxConns }}"
+        - name: DB_POOL_MIN_CONNS
+          value: "{{ .Values.postgres.poolMinConns }}"
+        - name: DB_SSL_MODE
+          value: "{{ .Values.postgres.sslMode }}"
+        {{- range $key, $value := .Values.service1.additionalEnv }}
+        - name: {{ $key }}
+          value: "{{ $value }}"
+        {{- end }}
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.service2.name }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ .Values.service2.name }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.service2.name }}
+    spec:
+      containers:
+      - name: {{ .Values.service2.name }}
+        image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+        command: ["{{ .Values.service2.command }}"]
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        env:
+        - name: DB_HOST
+          value: "{{ .Values.postgres.host }}"
+        - name: DB_PORT
+          value: "{{ .Values.postgres.port }}"
+        - name: DB_NAME
+          value: "{{ .Values.postgres.name }}"
+        - name: DB_USER
+          value: "{{ .Values.postgres.user }}"
+        - name: DB_PASS
+          value: "{{ .Values.postgres.password }}"
+        - name: DB_POOL_MAX_CONNS
+          value: "{{ .Values.postgres.poolMaxConns }}"
+        - name: DB_POOL_MIN_CONNS
+          value: "{{ .Values.postgres.poolMinConns }}"
+        - name: DB_SSL_MODE
+          value: "{{ .Values.postgres.sslMode }}"
+        {{- range $key, $value := .Values.service2.additionalEnv }}
+        - name: {{ $key }}
+          value: "{{ $value }}"
+        {{- end }}

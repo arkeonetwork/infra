@@ -22,7 +22,7 @@ binance-daemon:
   enabled: false
 
 bitcoin-daemon:
-  enabled: true
+  enabled: false
 
 litecoin-daemon:
   enabled: false
@@ -31,13 +31,13 @@ bitcoin-cash-daemon:
   enabled: false
 
 ethereum-daemon:
-  enabled: true
+  enabled: false
 
 dogecoin-daemon:
   enabled: false
 
 gaia-daemon:
-  enabled: true
+  enabled: false
 
 avalanche-daemon:
   enabled: false

@@ -26,7 +26,12 @@ debug: false
 
 # provide custom environment variables to override config defaults:
 # https://gitlab.com/arkeo/arkeo/-/blob/develop/config/default.yaml
-env: {}
+env:
+  BTC_MAINNET_FULLNODE: "http://thorchain:password@bitcoin-daemon.daemons2.svc.cluster.local:8332"
+  ETH_MAINNET_FULLNODE: "http://ethereum-daemon.daemons2.svc.cluster.local:8545"
+  GAIA_MAINNET_RPC: "http://gaia-daemon.daemons2.svc.cluster.local:26657"
+  GAIA_MAINNET_GRPC: "http://gaia-daemon.daemons2.svc.cluster.local:9090"
+
 
 arkeoApi: arkeo:1317
 chainID:

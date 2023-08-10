@@ -1,0 +1,66 @@
+{{- range $part := .Values.parts }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ $part.name }}
+  labels:
+    app: {{ $part.label}}
+spec:
+  replicas: {{ $.Values.replicas }}
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: {{ $part.label }}
+  template:
+    metadata:
+      labels:
+        app: {{ $part.label }}
+    spec:
+      containers:
+      - name: {{ $part.containerName }}
+        image: {{ $part.image }}
+        imagePullPolicy: IfNotPresent
+        volumeMounts:
+        - mountPath: {{ $part.pvcMountPath }}
+          name: {{ $part.pvcMountName }}
+        - mountPath: /scripts
+          name: scripts
+        command:
+        {{- if eq $part.name "bor" }}
+        - /scripts/bor-entrypoint.sh
+        {{- else }}
+        - /scripts/entrypoint.sh
+        {{- end }}
+        env:
+        {{- range $env := $part.env }}
+        - name: {{ $env.name }}
+          value: {{ $env.value | quote }}
+        {{- end }}
+        ports:
+        {{- range $port := $part.ports }}
+        - name: {{ $port.name }}
+          containerPort: {{ $port.containerPort }}
+        {{- end }}
+      volumes:
+      - name: {{ $part.pvcMountName }}
+        persistentVolumeClaim:
+          claimName: {{ $part.claimName }} 
+      - name: scripts
+        configMap:
+          name: {{ $.Values.configMap }}
+          defaultMode: 0777
+      {{- with $.Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with $.Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with $.Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+{{- end }}

@@ -1,0 +1,14 @@
+{{- range $part := .Values.parts }}
+---
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: {{ $part.claimName }}
+spec:
+  accessModes:
+  - ReadWriteMany
+  resources:
+    requests:
+      storage: {{ $part.storage }}
+  storageClassName: fast-storage
+{{- end }}

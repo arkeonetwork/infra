@@ -12,7 +12,7 @@ binance-daemon:
   enabled: false
 
 bitcoin-daemon:
-  enabled: true
+  enabled: false
 
 litecoin-daemon:
   enabled: false

@@ -96,7 +96,7 @@ affinity:
             - key: metadata.name
               operator: In
               values:
-                - node02
+                - node01
 
 global:
   images:

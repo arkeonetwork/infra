@@ -47,15 +47,3 @@ Selector labels
 app.kubernetes.io/name: {{ include "polygon-daemon.name" . }}
 app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end -}}
-
-{{/*
-Create the name of the service account to use
-*/}}
-{{- define "polygon-daemon.serviceAccountName" -}}
-{{- if .Values.serviceAccount.create -}}
-    {{ default (include "polygon-daemon.fullname" .) .Values.serviceAccount.name }}
-{{- else -}}
-    {{ default "default" .Values.serviceAccount.name }}
-{{- end -}}
-{{- end -}}
-

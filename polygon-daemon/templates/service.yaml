@@ -1,19 +1,19 @@
-{{- range $part := .Values.parts }}
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ $part.name }}
+  name: {{ include "polygon-daemon.fullname" . }}
   labels:
-    app: {{ $part.label}}
+    {{- include "polygon-daemon.labels" . | nindent 4 }}
 spec:
-  type: {{ $part.serviceType }}
+  type: {{ .Values.service }}
+  {{- range $nodeName, $ports := .Values.ports }}
+  {{- range $portIndex, $port := $ports }}
   ports:
-  {{- range $port := $part.ports }}
   - name: {{ $port.name }}
     port: {{ $port.containerPort }}
     targetPort: {{ $port.name }}
   {{- end }}
+  {{- end }}
   selector:
-    app: {{ $part.label}}
-{{- end }}
+    {{- include "polygon-daemon.selectorLabels" . | nindent 4 }}

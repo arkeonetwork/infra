@@ -1,14 +1,12 @@
-{{- range $part := .Values.parts }}
 ---
 kind: PersistentVolumeClaim
 apiVersion: v1
 metadata:
-  name: {{ $part.claimName }}
+  name: {{ template "polygon-daemon.fullname" . }}
 spec:
   accessModes:
   - ReadWriteMany
   resources:
     requests:
-      storage: {{ $part.storage }}
+      storage: {{ .Values.storage }}
   storageClassName: fast-storage
-{{- end }}

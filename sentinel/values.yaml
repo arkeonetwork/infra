@@ -31,6 +31,7 @@ env:
   ETH_MAINNET_FULLNODE: "http://ethereum-daemon.daemons2.svc.cluster.local:8545"
   GAIA_MAINNET_RPC: "http://gaia-daemon.daemons2.svc.cluster.local:26657"
   GAIA_MAINNET_GRPC: "http://gaia-daemon.daemons2.svc.cluster.local:9090"
+  EXTERNAL_IP: "198.179.73.142"
 
 
 arkeoApi: arkeo:1317
@@ -100,7 +101,7 @@ securityContext: {}
 
 resources:
   requests:
-    cpu: 7
+    cpu: 2
     memory: 2Gi
   limits:
     memory: 4Gi

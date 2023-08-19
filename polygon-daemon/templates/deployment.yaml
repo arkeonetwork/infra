@@ -1,0 +1,84 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "polygon-daemon.fullname" . }}
+  labels:
+    {{- include "polygon-daemon.labels" . | nindent 4 }}
+spec:
+  replicas: {{ $.Values.replicas }}
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      {{- include "polygon-daemon.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "polygon-daemon.selectorLabels" . | nindent 8 }}
+    spec:
+      containers:
+      - name: {{ .Chart.Name }}-heimdall
+        image: {{ .Values.images.heimdall.name }}:{{ .Values.images.heimdall.tag}}
+        imagePullPolicy: IfNotPresent
+        volumeMounts:
+        - mountPath: {{ .Values.volumeMount.heimdall.path }}
+          name: data
+        - mountPath: /scripts
+          name: scripts
+        command:
+        - /scripts/entrypoint.sh
+        env:
+        {{- range $env := .Values.env.heimdall }}
+        - name: {{ $env.name }}
+          value: {{ $env.value | quote }}
+        {{- end }}
+        ports:
+        {{- range $port := .Values.ports.heimdall }}
+        - name: {{ $port.name }}
+          containerPort: {{ $port.containerPort }}
+        {{- end }}
+        resources:
+          {{- toYaml .Values.resources | nindent 12 }}
+      - name: {{ .Chart.Name }}-bor
+        image: {{ .Values.images.bor.name }}:{{ .Values.images.bor.tag}}
+        imagePullPolicy: IfNotPresent
+        volumeMounts:
+        - mountPath: {{ .Values.volumeMount.bor.path }}
+          name: data
+        - mountPath: /scripts
+          name: scripts
+        command:
+        - /scripts/bor-entrypoint.sh
+        env:
+        {{- range $env := .Values.env.bor }}
+        - name: {{ $env.name }}
+          value: {{ $env.value | quote }}
+        {{- end }}
+        ports:
+        {{- range $port := .Values.ports.bor }}
+        - name: {{ $port.name }}
+          containerPort: {{ $port.containerPort }}
+        {{- end }}
+        resources:
+          {{- toYaml .Values.resources | nindent 12 }}
+      volumes:
+      - name: data
+        persistentVolumeClaim:
+          claimName: {{ template "polygon-daemon.fullname" . }} 
+      - name: scripts
+        configMap:
+          name: {{ $.Values.configMap }}
+          defaultMode: 0777
+      {{- with $.Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with $.Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with $.Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

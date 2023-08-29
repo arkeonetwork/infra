@@ -7,7 +7,7 @@ moniker: n/a
 website: n/a
 description: n/a
 location: n/a
-pubkey: "tarkeopub1addwnpepqvnhygy00gx3uncfmgjev643c20dh8wz6h0gmmv9rxh77jmjt53h79tq4he"
+pubkey: "tarkeopub1addwnpepqtrc0rrpkwn2esula68zl3dvqqfxfjhr5dyfxy3uq97dssntrq8twyc5v3p"
 freeRate:
   limit: 10
 claimStoreLocation: "${HOME}/.arkeo/claims"

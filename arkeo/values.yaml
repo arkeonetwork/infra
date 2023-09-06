@@ -14,8 +14,8 @@ signer:
   mnemonicSecret: ""
   passwordSecret: ""
 
-peer:
-peerApi:
+peer: seed.arkeo.network
+peerApi: seed.arkeo.network
 
 # See docs/Thornode-Snapshot-Recovery-and-Storage-Management.md for details.
 statesync:

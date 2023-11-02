@@ -110,15 +110,7 @@ nodeSelector: {}
 
 tolerations: []
 
-affinity:
-  nodeAffinity:
-    requiredDuringSchedulingIgnoredDuringExecution:
-      nodeSelectorTerms:
-        - matchFields:
-            - key: metadata.name
-              operator: In
-              values:
-                - node01
+affinity: {}
 
 global:
   gateway:

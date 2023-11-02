@@ -14,7 +14,7 @@ directory:
 midgard:
   enabled: false
   blockstore:
-    enabled: true
+    enabled: false
     remote: https://storage.googleapis.com/public-snapshots-ninerealms/midgard-blockstore/mainnet/v2/
     size: 20Gi
 

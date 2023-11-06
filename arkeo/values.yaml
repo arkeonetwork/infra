@@ -24,7 +24,9 @@ statesync:
 
 # provide custom environment variables to override config defaults:
 # https://gitlab.com/arkeo/arkeo/-/blob/develop/config/default.yaml
-env: {}
+env:
+  SEED: seed.arkeo.network:26656
+  RPC: seed.arkeo.network:26657
 
 debug: false
 chainID:

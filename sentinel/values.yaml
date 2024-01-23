@@ -27,11 +27,18 @@ debug: false
 # provide custom environment variables to override config defaults:
 # https://gitlab.com/arkeo/arkeo/-/blob/develop/config/default.yaml
 env:
-  BTC_MAINNET_FULLNODE: "http://thorchain:password@bitcoin-daemon.daemons2.svc.cluster.local:8332"
-  ETH_MAINNET_FULLNODE: "http://ethereum-daemon.daemons2.svc.cluster.local:8545"
-  GAIA_MAINNET_RPC: "http://gaia-daemon.daemons2.svc.cluster.local:26657"
-  GAIA_MAINNET_GRPC: "http://gaia-daemon.daemons2.svc.cluster.local:9090"
   EXTERNAL_IP: "198.179.73.142"
+  BTC_MAINNET_FULLNODE: "http://user:password@bitcoin-svc.unchained.svc.cluster.local:8332"
+  BTC_MAINNET_UNCHAINED: "http://bitcoin-svc.unchained.svc.cluster.local:8001"
+  ETH_MAINNET_FULLNODE: "http://ethereum-svc.unchained.svc.cluster.local:8545"
+  ETH_MAINNET_UNCHAINED: "http://ethereum-svc.unchained.svc.cluster.local:8001"
+  GAIA_MAINNET_RPC: "http://gaia-daemon.gaia-daemon.svc.cluster.local:26657"
+  GAIA_MAINNET_GRPC: "http://gaia-daemon.gaia-daemon.svc.cluster.local:9090"
+  GAIA_MAINNET_UNCHAINED: "http://cosmos-svc.unchained.svc.cluster.local:8001"
+  DOGE_MAINNET_UNCHAINED: "http://dogecoin-svc.unchained.svc.cluster.local:8001"
+  DOGE_MAINNET_FULLNODE: "http://dogecoin-svc.unchained.svc.cluster.local:8332"
+  OPTIMISM_MAINNET_FULLNODE: "http://optimism-svc.unchained.svc.cluster.local:9545"
+  OPTIMISM_MAINNET_UNCHAINED: "http://optimism-svc.unchained.svc.cluster.local:8001"
 
 
 arkeoApi: arkeo:1317

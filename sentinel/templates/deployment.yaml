@@ -76,11 +76,6 @@ spec:
               name: data
               subPath: etc
           env:
-            - name: EXTERNAL_IP
-              valueFrom:
-                configMapKeyRef:
-                  name: {{ include "sentinel.fullname" . }}-external-ip
-                  key: externalIP
             - name: VALIDATOR
               value: "true"
             - name: NET
